@@ -8,17 +8,23 @@ import java.io.IOException;
 import java.util.Iterator;
 
 public class DetermineType {
-    public static String determineType(File file) {
-        try(ImageInputStream iis = ImageIO.createImageInputStream(file)){
+    public static String determineType(File file) throws IOException {
+        if (file == null) {
+            throw new IllegalArgumentException("File is null");
+        }
+
+        try (ImageInputStream iis = ImageIO.createImageInputStream(file)) {
+            if (iis == null) {
+                throw new IOException("Unable to create image input stream");
+            }
+
             Iterator<ImageReader> readers = ImageIO.getImageReaders(iis);
-            if(readers.hasNext()) {
+            if (readers.hasNext()) {
                 ImageReader reader = readers.next();
                 return reader.getFormatName();
             }
-        } catch (IOException e) {
-            e.printStackTrace();
-            throw new RuntimeException(e);
+
+            throw new IOException("Unknown image format");
         }
-        return null;
     }
 }

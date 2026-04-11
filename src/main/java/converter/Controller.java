@@ -1,13 +1,11 @@
 package converter;
 
-import Model.Converter.Converter;
+import Model.Converter.ConverterImage;
+import Model.Logger.ErrorLogger;
 import Model.WorkWithFiles.ClassSelect;
 import javafx.fxml.FXML;
 import javafx.scene.Node;
-import javafx.scene.control.Button;
-import javafx.scene.control.Label;
-import javafx.scene.control.ProgressBar;
-import javafx.scene.control.ToggleButton;
+import javafx.scene.control.*;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.Pane;
@@ -20,6 +18,8 @@ public class Controller {
     private static File image;
     private static File outputPath ;
     private static String typeImage;
+    @FXML
+    private Label LabelSelectImageName;
 
     @FXML
     private AnchorPane AnchorPane;
@@ -63,6 +63,7 @@ public class Controller {
         assert btnSubmitConvert != null : "fx:id=\"btnSubmitConvert\" was not injected!";
         assert ProgressBarCompleteConvert != null : "fx:id=\"ProgressBarCompleteConvert\" was not injected!";
         assert btnChoiceDirForSaveImage != null : "fx:id=\"btnChoiceDirForSaveImage\" was not injected!";
+        assert LabelSelectImageName != null : "fx:id=\"LabelSelectImageName\" was not injected!";
 
         outputPath = Paths.get(System.getProperty("user.home"), "Desktop").toFile();
     }
@@ -93,6 +94,8 @@ public class Controller {
         ClassSelect selectImageFile = new ClassSelect();
         Stage stage = (Stage) ((Node) mouseEvent.getSource()).getScene().getWindow();
         image = selectImageFile.choiceFile(mouseEvent, stage);
+        LabelSelectImageName.setText(image.getName());
+
     }
 
     public void btnChoiceDirForSaveImage(MouseEvent mouseEvent) {
@@ -100,12 +103,31 @@ public class Controller {
         outputPath  = ClassSelect.setPathForSave(mouseEvent, stage);
     }
 
+
     public void SubmitConvertAndDownload(MouseEvent event) {
-        if(btnToICO.isSelected()){
-            Converter.convertToIco(image, outputPath, typeImage);
-        }
-        else{
-            Converter.convert(image, outputPath, typeImage);
+        try {
+            if (image == null || outputPath == null) {
+                ErrorLogger.alertDialog(Alert.AlertType.WARNING, "Warning", "Warning", "Select image and save directory first.");
+                return;
+            }
+
+            if (!btnToICO.isSelected() && typeImage == null) {
+                ErrorLogger.alertDialog(Alert.AlertType.WARNING, "Warning", "Warning", "Select photo format (PNG/JPEG/ICO).");
+                return;
+            }
+
+            if (btnToICO.isSelected()) {
+                ConverterImage.convertToIco(image, outputPath, typeImage);
+            } else {
+                ConverterImage.convert(image, outputPath, typeImage);
+            }
+        } catch (IllegalArgumentException e) {
+            ErrorLogger.alertDialog(Alert.AlertType.WARNING, "Warning", "Warning", "Invalid image or format selected.");
+            ErrorLogger.logError(102, "IllegalArgumentException during conversion", e);
+
+        } catch (Exception e) {
+            ErrorLogger.alertDialog(Alert.AlertType.ERROR, "Error", "Unexpected Error", "Something went wrong: " + e.getMessage());
+            ErrorLogger.logError(999, "Unexpected error in SubmitConvertAndDownload", e);
         }
     }
 }

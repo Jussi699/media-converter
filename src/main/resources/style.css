@@ -1,0 +1,46 @@
+.label{
+    -fx-font-family: "Cascadia Code" ;
+    -fx-font-size: 18;
+    -fx-font-style: italic;
+    -fx-font-weight: bold;
+}
+
+#LabelSelectImageName {
+    -fx-font-size: 8px !important;
+}
+
+.button {
+    -fx-font-family: "Cascadia Code";
+    -fx-font-weight: bold;
+    -fx-background-color: LightGrey;
+    -fx-background-insets: 0;
+    -fx-background-radius: 10;
+
+}
+
+.button:hover {
+    -fx-background-color: LightBlue;
+    -fx-scale-x: 1.02;
+    -fx-scale-y: 1.02;
+}
+
+.toggle-button{
+    -fx-font-family: "Cascadia Code";
+    -fx-font-weight: bold;
+    -fx-background-color: LightGrey;
+    -fx-background-insets: 0;
+    -fx-background-radius: 10;
+}
+
+.toggle-button:selected{
+    -fx-background-color: #32CD32;
+}
+
+.toggle-button:hover{
+    -fx-background-color: #32CD32;
+    -fx-scale-x: 1.02;
+    -fx-scale-y: 1.02;
+}
+
+.progress-bar{
+}
