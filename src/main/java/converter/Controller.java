@@ -3,6 +3,8 @@ package converter;
 import javafx.embed.swing.SwingFXUtils;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.scene.input.MouseEvent;
+import javafx.scene.layout.StackPane;
 import model.converter.ConverterImage;
 import model.converter.DetermineType;
 import model.logger.ErrorLogger;
@@ -78,6 +80,12 @@ public class Controller {
     private Label LabelSuccessConvert;
 
     @FXML
+    private ScrollPane scrollPanePhoto;
+
+    @FXML
+    private StackPane imageContainer;
+
+    @FXML
     public void initialize() {
         assert AnchorPane != null : "fx:id=\"AnchorPane\" was not injected!";
         assert mainPane != null : "fx:id=\"mainPane\" was not injected!";
@@ -94,9 +102,27 @@ public class Controller {
         assert leftPane != null : "fx:id=\"leftPane\" was not injected!";
         assert rightPane != null : "fx:id=\"rightPane\" was not injected!";
         assert imageScaleSlider != null : "fx:id=\"imageScaleSlider\" was not injected!";
+        assert scrollPanePhoto != null : "fx:id=\"scrollPanePhoto\" was not injected!";
 
         Tooltip tooltipChoiceDir = new Tooltip("Standard directory, Desktop");
         btnChoiceDirForSaveImage.setTooltip(tooltipChoiceDir);
+
+        imageScaleSlider.setMin(1.0);
+        imageScaleSlider.setMax(5.0); // Увеличил до 5 для наглядности
+        imageScaleSlider.setValue(1.0);
+
+        imageViewPhoto.scaleXProperty().bind(imageScaleSlider.valueProperty());
+        imageViewPhoto.scaleYProperty().bind(imageScaleSlider.valueProperty());
+
+        imageScaleSlider.valueProperty().addListener((_, _, newVal) -> {
+            double zoom = newVal.doubleValue();
+
+            double newWidth = imageViewPhoto.getFitWidth() * zoom;
+            double newHeight = imageViewPhoto.getFitHeight() * zoom;
+
+            imageContainer.setMinWidth(newWidth);
+            imageContainer.setMinHeight(newHeight);
+        });
 
         outputPath = Paths.get(System.getProperty("user.home"), "Desktop").toFile();
         LabelSuccessConvert.setVisible(false);

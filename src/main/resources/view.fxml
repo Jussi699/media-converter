@@ -1,100 +1,82 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import javafx.scene.control.Button?>
-<?import javafx.scene.control.Label?>
-<?import javafx.scene.control.ProgressBar?>
-<?import javafx.scene.control.ToggleButton?>
-<?import javafx.scene.layout.AnchorPane?>
-<?import javafx.scene.layout.Pane?>
-<?import javafx.scene.control.ComboBox?>
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.layout.*?>
 
 <AnchorPane fx:id="AnchorPane" prefHeight="600.0" prefWidth="1000.0" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="converter.Controller">
-
     <children>
-        <Pane fx:id="mainPane" prefHeight="600.0" prefWidth="1000.0" style="-fx-background-color: #2b2b2b;">
-
+        <HBox fx:id="mainPane" prefHeight="600.0" prefWidth="1000.0" style="-fx-background-color: #2b2b2b;">
             <children>
-                <Pane prefHeight="600.0" prefWidth="300.0" style="-fx-background-color: #4b4b4b;">
+                <VBox fx:id="leftPane" alignment="TOP_CENTER" prefHeight="600.0" prefWidth="480.0" spacing="35.0" style="-fx-background-color: #4b4b4b;">
                     <children>
-                        <Label fx:id="LabelConvertPhoto"
-                               alignment="CENTER"
-                               layoutX="75.0"
-                               layoutY="14.0"
-                               prefWidth="150.0"
-                               text="Convert Photo"
-                               textFill="RED" />
+                        <Label fx:id="LabelConvertPhoto" alignment="CENTER" prefWidth="200.0" text="Convert Photo" textFill="RED">
+                            <VBox.margin>
+                                <Insets top="10.0" />
+                            </VBox.margin>
+                        </Label>
 
-                        <Button fx:id="btnSelectPhotoFile"
-                                layoutX="104.0"
-                                layoutY="81.0"
-                                mnemonicParsing="false"
-                                onAction="#ActionBtnSelectFile"
-                                text="Select image" />
+                        <Button fx:id="btnSelectPhotoFile" mnemonicParsing="false" onAction="#ActionBtnSelectFile" prefWidth="180.0" text="Select image" />
 
-                        <Button fx:id="btnChoiceDirForSaveImage"
-                                layoutX="75.0"
-                                layoutY="136.0"
-                                mnemonicParsing="false"
-                                onAction="#btnChoiceDirForSaveImage"
-                                prefHeight="25.0"
-                                prefWidth="150.0"
-                                text="Directory for save" />
+                        <Button fx:id="btnChoiceDirForSaveImage" mnemonicParsing="false" onAction="#btnChoiceDirForSaveImage" prefWidth="180.0" text="Directory for save" />
 
-                        <ToggleButton fx:id="btnToPNG"
-                                      layoutX="40.0"
-                                      layoutY="200.0"
-                                      mnemonicParsing="false"
-                                      onAction="#ActionBtnToPNG"
-                                      prefHeight="25.0"
-                                      prefWidth="67.0"
-                                      text="to PNG" />
+                        <HBox alignment="CENTER" spacing="30.0">
+                            <children>
+                                <ToggleButton fx:id="btnToPNG" mnemonicParsing="false" onAction="#ActionBtnToPNG" prefWidth="70.0" text="to PNG" />
+                                <ToggleButton fx:id="btnToJPEG" mnemonicParsing="false" onAction="#ActionBtnToJPEG" prefWidth="70.0" text="to JPEG" />
+                                <ComboBox fx:id="ComboBoxIcoSize" onAction="#onChoiceIcoSize" prefWidth="80.0" />
+                            </children>
+                            <VBox.margin>
+                                <Insets />
+                            </VBox.margin>
+                        </HBox>
 
-                        <ToggleButton fx:id="btnToJPEG"
-                                      layoutX="116.0"
-                                      layoutY="200.0"
-                                      mnemonicParsing="false"
-                                      onAction="#ActionBtnToJPEG"
-                                      prefHeight="25.0"
-                                      prefWidth="67.0"
-                                      text="to JPEG" />
-                        <ComboBox fx:id="ComboBoxIcoSize"
-                                      layoutX="192.0"
-                                      layoutY="200.0"
-                                      onAction="#onChoiceIcoSize"
-                                      prefHeight="25.0"
-                                      prefWidth="70.0"
-                                       />
+                        <VBox alignment="CENTER" spacing="10.0">
+                            <children>
+                                <Button fx:id="btnSubmitConvert" mnemonicParsing="false" onAction="#SubmitConvertAndDownload" prefWidth="230.0" text="Convert and Download" />
+                                <Label fx:id="LabelSuccessConvert" alignment="CENTER" prefWidth="280.0" textFill="#32CD32" />
+                            </children>
+                        </VBox>
 
-                        <Button fx:id="btnSubmitConvert"
-                                layoutX="75.0"
-                                layoutY="270.0"
-                                mnemonicParsing="false"
-                                onAction="#SubmitConvertAndDownload"
-                                prefHeight="25.0"
-                                prefWidth="180.0"
-                                text="Convert and Download" />
+                        <ScrollPane fx:id="scrollPanePhoto"
+                                    prefHeight="250.0" prefWidth="350.0" pannable="true" fitToHeight="true" fitToWidth="true"
+                                    style="-fx-background: #3b3b3b; -fx-border-color: #3b3b3b; -fx-background-color: transparent;">
+                            <content>
+                                <StackPane fx:id="imageContainer" minHeight="245.0" minWidth="345.0" >
+                                    <children>
+                                        <ImageView fx:id="imageViewPhoto" fitHeight="250.0" fitWidth="350.0"
+                                                   pickOnBounds="true" preserveRatio="true" />
+                                    </children>
+                                </StackPane>
+                            </content>
+                        </ScrollPane>
 
-                        <Label fx:id="LabelSelectImageName"
-                               alignment="BOTTOM_LEFT"
-                               layoutX="10.0"
-                               layoutY="570.0"
-                               prefWidth="280.0"
-                               prefHeight="20"
-                               text="none"
-                               textFill="RED"
-                                />
-                        <Label fx:id="LabelSuccessConvert"
-                               alignment="CENTER"
-                               layoutX="10.0"
-                               layoutY="300.0"
-                               prefWidth="280.0"
-                               prefHeight="20"
-                               textFill="#32CD32" />
+                        <VBox alignment="CENTER">
+                            <children>
+                                <Slider fx:id="imageScaleSlider" maxWidth="300.0" min="1.0" max="3.0" value="1.0" />
+
+                                <Label fx:id="LabelSelectImageName" alignment="CENTER" prefWidth="400.0" text="none" textFill="RED">
+                                    <VBox.margin>
+                                        <Insets top="10.0" />
+                                    </VBox.margin>
+                                </Label>
+                            </children>
+                            <VBox.margin>
+                                <Insets top="-30.0" />
+                            </VBox.margin>
+                        </VBox>
+
                     </children>
-                </Pane>
-                <Pane layoutX="700.0" prefHeight="600.0" prefWidth="300.0" style="-fx-background-color: #4b4b4b;" />
+                    <padding>
+                        <Insets left="20.0" right="20.0" />
+                    </padding>
+                </VBox>
 
+                <Region prefWidth="40.0" />
+
+                <Pane fx:id="rightPane" prefHeight="600.0" prefWidth="480.0" style="-fx-background-color: #4b4b4b;" />
             </children>
-        </Pane>
+        </HBox>
     </children>
 </AnchorPane>
