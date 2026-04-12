@@ -4,6 +4,7 @@ import Model.Converter.ConverterImage;
 import Model.Converter.DetermineType;
 import Model.Logger.ErrorLogger;
 import Model.WorkWithFiles.ClassSelect;
+import javafx.animation.PauseTransition;
 import javafx.fxml.FXML;
 import javafx.scene.Node;
 import javafx.scene.control.Alert;
@@ -17,16 +18,20 @@ import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.Pane;
 import javafx.stage.Stage;
+import javafx.util.Duration;
 
 import java.io.File;
 import java.nio.file.Paths;
 
 public class Controller {
+    private static final int SUCCESS_MESSAGE_DURATION_SECONDS = 5;
 
     private static File image;
     private static File outputPath;
     private static String typeImage;
     private static int sizeIcoImage;
+    private final PauseTransition hideSuccessMessageTimer =
+            new PauseTransition(Duration.seconds(SUCCESS_MESSAGE_DURATION_SECONDS));
 
     @FXML
     private Label LabelSelectImageName;
@@ -62,6 +67,9 @@ public class Controller {
     private ComboBox<String> ComboBoxIcoSize;
 
     @FXML
+    private Label LabelSuccessConvert;
+
+    @FXML
     public void initialize() {
         assert AnchorPane != null : "fx:id=\"AnchorPane\" was not injected!";
         assert mainPane != null : "fx:id=\"mainPane\" was not injected!";
@@ -74,8 +82,18 @@ public class Controller {
         assert btnChoiceDirForSaveImage != null : "fx:id=\"btnChoiceDirForSaveImage\" was not injected!";
         assert LabelSelectImageName != null : "fx:id=\"LabelSelectImageName\" was not injected!";
         assert ComboBoxIcoSize != null : "fx:id=\"ComboBoxIcoSize\" was not injected!";
+        assert LabelSuccessConvert != null : "fx:id=\"LabelSuccessConvert\" was not injected!";
 
         outputPath = Paths.get(System.getProperty("user.home"), "Desktop").toFile();
+        LabelSuccessConvert.setVisible(false);
+        LabelSuccessConvert.setManaged(false);
+        LabelSuccessConvert.setText("");
+
+        hideSuccessMessageTimer.setOnFinished(_ -> {
+            LabelSuccessConvert.setVisible(false);
+            LabelSuccessConvert.setManaged(false);
+            LabelSuccessConvert.setText("");
+        });
 
         ComboBoxIcoSize.getItems().addAll("16", "32", "64", "128");
         ComboBoxIcoSize.setDisable(false);
@@ -112,8 +130,16 @@ public class Controller {
             @Override
             protected void updateItem(String item, boolean empty) {
                 super.updateItem(item, empty);
-                setText(empty || item == null ? null : item);
-                setStyle("-fx-alignment: center; -fx-text-fill: black;");
+
+                if (empty || item == null) {
+                    setText(null);
+                    setGraphic(null);
+                    setStyle("-fx-background-color: transparent;");
+                } else {
+                    setText(item);
+                    setGraphic(null);
+                    setStyle("-fx-alignment: center; -fx-text-fill: black;");
+                }
             }
         });
     }
@@ -217,6 +243,10 @@ public class Controller {
                 return;
             }
 
+            hideSuccessMessage();
+
+            long startTime = System.currentTimeMillis();
+
             String inputExtension = getSourceImageFormat(image);
             String targetFormat = normalizeFormat(typeImage);
 
@@ -242,6 +272,15 @@ public class Controller {
                 }
             }
 
+            File convertedFile = findLatestConvertedFile(outputPath, targetFormat, startTime);
+
+            if (convertedFile != null && convertedFile.exists() && convertedFile.isFile() && convertedFile.length() > 0) {
+                showSuccessMessage("Image converted successfully!");
+            } else {
+                ErrorLogger.alertDialog(Alert.AlertType.WARNING, "Warning", "Warning",
+                        "Conversion finished, but saved file was not found.");
+            }
+
         } catch (IllegalArgumentException e) {
             ErrorLogger.alertDialog(Alert.AlertType.WARNING, "Warning", "Warning", "Invalid image or format selected.");
             ErrorLogger.logError(104, "IllegalArgumentException during conversion", e);
@@ -250,5 +289,45 @@ public class Controller {
             ErrorLogger.alertDialog(Alert.AlertType.ERROR, "Error", "Unexpected Error", "Something went wrong: " + e.getMessage());
             ErrorLogger.logError(999, "Unexpected error in SubmitConvertAndDownload", e);
         }
+    }
+
+    private File findLatestConvertedFile(File directory, String extension, long startTime) {
+        if (directory == null || !directory.exists() || !directory.isDirectory()) {
+            return null;
+        }
+
+        File[] files = directory.listFiles((dir, name) ->
+                name.toLowerCase().endsWith("." + extension.toLowerCase()));
+
+        if (files == null || files.length == 0) {
+            return null;
+        }
+
+        File latestFile = null;
+
+        for (File file : files) {
+            if (file.isFile() && file.lastModified() >= startTime) {
+                if (latestFile == null || file.lastModified() > latestFile.lastModified()) {
+                    latestFile = file;
+                }
+            }
+        }
+
+        return latestFile;
+    }
+
+    private void showSuccessMessage(String message) {
+        LabelSuccessConvert.setText(message);
+        LabelSuccessConvert.setManaged(true);
+        LabelSuccessConvert.setVisible(true);
+        hideSuccessMessageTimer.stop();
+        hideSuccessMessageTimer.playFromStart();
+    }
+
+    private void hideSuccessMessage() {
+        hideSuccessMessageTimer.stop();
+        LabelSuccessConvert.setVisible(false);
+        LabelSuccessConvert.setManaged(false);
+        LabelSuccessConvert.setText("");
     }
 }

@@ -23,11 +23,16 @@ public class ConverterImage {
                 throw new IOException("Unable to read image");
             }
 
-            String nameFile = image.getName().substring(0, image.getName().indexOf(".")) + "_converted_" + random.nextInt() + "." + typeFile;
+            String outputFormat = normalizeOutputFormat(typeFile);
+            BufferedImage preparedImage = prepareImageForFormat(bufImage, outputFormat);
+            String nameFile = image.getName().substring(0, image.getName().lastIndexOf(".")) + "_converted_" + random.nextInt() + "." + typeFile;
             String outputPath = pathForSave.getAbsolutePath() + File.separator + nameFile;
             File outputImage = new File(outputPath);
 
-            ImageIO.write(bufImage, typeFile, outputImage);
+            boolean written = ImageIO.write(preparedImage, outputFormat, outputImage);
+            if (!written) {
+                throw new IOException("Unsupported output format: " + typeFile);
+            }
         } catch (IOException | IllegalArgumentException e) {
             ErrorLogger.alertDialog(Alert.AlertType.WARNING, "Warning", "Warning", "You have not selected an image.");
             ErrorLogger.logError(101, "Argument is null, maybe not selected image! | " +
@@ -80,13 +85,14 @@ public class ConverterImage {
                 throw new IOException("ICO file does not contain images");
             }
 
-            BufferedImage bestImage = getBestImage(images);
+            String outputFormat = normalizeOutputFormat(typeFile);
+            BufferedImage bestImage = prepareImageForFormat(getBestImage(images), outputFormat);
 
             String nameFile = image.getName().substring(0, image.getName().lastIndexOf(".")) + "_converted_" + random.nextInt() + "." + typeFile;
             String outputPath = pathForSave.getAbsolutePath() + File.separator + nameFile;
             File outputImage = new File(outputPath);
 
-            boolean written = ImageIO.write(bestImage, typeFile, outputImage);
+            boolean written = ImageIO.write(bestImage, outputFormat, outputImage);
             if (!written) {
                 throw new IOException("Unsupported output format: " + typeFile);
             }
@@ -106,6 +112,28 @@ public class ConverterImage {
                             " In Method: " + ErrorLogger.getCurrentMethodName(), e);
             return;
         }
+    }
+
+    private static String normalizeOutputFormat(String typeFile) {
+        if (typeFile == null) {
+            throw new IllegalArgumentException("Output format is null");
+        }
+
+        return "jpeg".equalsIgnoreCase(typeFile) ? "jpg" : typeFile.toLowerCase();
+    }
+
+    private static BufferedImage prepareImageForFormat(BufferedImage source, String format) {
+        if (!"jpg".equals(format) && !"jpeg".equals(format)) {
+            return source;
+        }
+
+        BufferedImage rgbImage = new BufferedImage(source.getWidth(), source.getHeight(), BufferedImage.TYPE_INT_RGB);
+        Graphics2D graphics = rgbImage.createGraphics();
+        graphics.setColor(Color.WHITE);
+        graphics.fillRect(0, 0, source.getWidth(), source.getHeight());
+        graphics.drawImage(source, 0, 0, null);
+        graphics.dispose();
+        return rgbImage;
     }
 
     private static BufferedImage resizeImage(BufferedImage original, int width, int height) {

@@ -52,7 +52,6 @@
     -fx-border-radius: 10;
 }
 
-/* Текст выбранного значения */
 .combo-box .list-cell {
     -fx-font-family: "Cascadia Code";
     -fx-font-size: 10px;
@@ -62,30 +61,25 @@
     -fx-background-color: transparent;
 }
 
-/* Hover на самом ComboBox */
 .combo-box:hover {
     -fx-background-color: #32CD32;
     -fx-scale-x: 1.02;
     -fx-scale-y: 1.02;
 }
 
-/* Кнопка со стрелкой */
 .combo-box .arrow-button {
     -fx-background-color: transparent;
-    -fx-font-size: 8;
+    -fx-font-size: 10;
 }
 
-/* Стрелка */
 .combo-box .arrow {
     -fx-background-color: black;
 }
 
-/* Если хочешь отдельный зелёный стиль после выбора */
 .combo-box.selected-choice {
     -fx-background-color: #32CD32;
 }
 
-/* Выпадающее окно */
 .combo-box-popup .list-view {
     -fx-background-color: LightGrey;
     -fx-background-radius: 10;
@@ -94,7 +88,6 @@
     -fx-pref-width: 70px;
 }
 
-/* Элементы списка */
 .combo-box-popup .list-view .list-cell {
     -fx-font-family: "Cascadia Code";
     -fx-font-size: 10px;
@@ -105,10 +98,22 @@
     -fx-background-color: LightGrey;
 }
 
-/* Hover / selected в списке */
 .combo-box-popup .list-view .list-cell:hover,
 .combo-box-popup .list-view .list-cell:filled:selected {
     -fx-background-color: #32CD32;
     -fx-text-fill: black;
     -fx-background-radius: 8;
+}
+
+.combo-box > .arrow-button {
+    -fx-padding: 0 2 0 2;
+    -fx-background-insets: 0;
+    -fx-background-radius: 0 10 10 0;
+}
+
+#LabelSuccessConvert {
+    -fx-font-family: "Cascadia Code";
+    -fx-font-weight: bold;
+    -fx-text-fill: #32CD32;
+    -fx-font-size: 10px;
 }

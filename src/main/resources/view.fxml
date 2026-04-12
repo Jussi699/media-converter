@@ -57,16 +57,6 @@
                                       prefHeight="25.0"
                                       prefWidth="67.0"
                                       text="to JPEG" />
-
-<!--                        <ToggleButton fx:id="btnToICO"-->
-<!--                                      layoutX="192.0"-->
-<!--                                      layoutY="200.0"-->
-<!--                                      mnemonicParsing="false"-->
-<!--                                      onMouseClicked="#ActionBtnToICO"-->
-<!--                                      prefHeight="25.0"-->
-<!--                                      prefWidth="67.0"-->
-<!--                                      text="to ICO" />-->
-
                         <ComboBox fx:id="ComboBoxIcoSize"
                                       layoutX="192.0"
                                       layoutY="200.0"
@@ -84,12 +74,6 @@
                                 prefWidth="150.0"
                                 text="Confirm convert" />
 
-                        <ProgressBar fx:id="ProgressBarCompleteConvert"
-                                     layoutX="50.0"
-                                     layoutY="340.0"
-                                     prefWidth="200.0"
-                                     progress="0.0" />
-
                         <Label fx:id="LabelSelectImageName"
                                alignment="BOTTOM_LEFT"
                                layoutX="10.0"
@@ -99,6 +83,13 @@
                                text="none"
                                textFill="RED"
                                 />
+                        <Label fx:id="LabelSuccessConvert"
+                               alignment="CENTER"
+                               layoutX="10.0"
+                               layoutY="300.0"
+                               prefWidth="280.0"
+                               prefHeight="20"
+                               textFill="#32CD32" />
                     </children>
                 </Pane>
                 <Pane layoutX="700.0" prefHeight="600.0" prefWidth="300.0" style="-fx-background-color: #4b4b4b;" />
