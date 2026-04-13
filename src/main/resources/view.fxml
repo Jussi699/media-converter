@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <?import javafx.geometry.Insets?>
+<?import javafx.scene.Group?>
 <?import javafx.scene.control.*?>
 <?import javafx.scene.image.ImageView?>
 <?import javafx.scene.layout.*?>
@@ -16,11 +17,9 @@
                                 <Insets top="20.0" />
                             </VBox.margin>
                         </Label>
-                        <Button fx:id="navHomeButton" mnemonicParsing="false" onAction="#showHomePage" prefWidth="140.0"
-                                style="-fx-background-color: #323232; -fx-text-fill: white; -fx-background-radius: 8;" text="Home" />
+                        <Button fx:id="navHomeButton" mnemonicParsing="false" onAction="#showHomePage" prefWidth="140.0" text="Home" />
 
-                        <Button fx:id="navConverterButton" mnemonicParsing="false" onAction="#showConverterPage" prefWidth="140.0"
-                                style="-fx-background-color: #323232; -fx-text-fill: white; -fx-background-radius: 8;" text="Image" />
+                        <Button fx:id="navConverterButton" mnemonicParsing="false" onAction="#showConverterPage" prefWidth="140.0" text="Image" />
                     </children>
                     <padding>
                         <Insets left="14.0" right="14.0" />
@@ -32,7 +31,7 @@
                             <children>
                                 <Label style="-fx-font-size: 30px; -fx-font-weight: bold;" text="Image Converter" textFill="WHITE" />
                                 <Label prefWidth="520.0" style="-fx-font-size: 16px;" text="Слева находится навигация. Нажмите кнопку Converter, чтобы открыть страницу конвертации в этом же окне приложения." textFill="#d6d6d6" wrapText="true" />
-                                <Button mnemonicParsing="false" onAction="#showConverterPage" prefWidth="220.0" style="-fx-background-color: #32CD32; -fx-text-fill: black; -fx-font-weight: bold; -fx-background-radius: 8;" text="Open converter" />
+                                <Button mnemonicParsing="false" fx:id="btnOpenConverter" onAction="#showConverterPage" prefWidth="220.0" text="Open converter" />
                             </children>
                             <padding>
                                 <Insets left="40.0" right="40.0" top="40.0" bottom="40.0" />
@@ -59,23 +58,42 @@
                                         <ComboBox fx:id="ComboBoxIcoSize" onAction="#onChoiceIcoSize" prefWidth="95.0" />
                                     </children>
                                 </HBox>
-                                <VBox alignment="CENTER" spacing="10.0" translateY="10.0">
+                                <StackPane translateY="10.0">
                                     <children>
-                                        <Button fx:id="btnSubmitConvert" mnemonicParsing="false" onAction="#SubmitConvertAndDownload" prefWidth="210.0" text="Convert and Download" />
-                                        <Label fx:id="LabelSuccessConvert" alignment="CENTER" prefWidth="280.0" textFill="#32CD32" />
+                                        <VBox alignment="CENTER" spacing="10.0">
+                                            <children>
+                                                <Button fx:id="btnSubmitConvert"
+                                                        mnemonicParsing="false"
+                                                        onAction="#SubmitConvertAndDownload"
+                                                        prefWidth="210.0"
+                                                        text="Convert and Download" />
+                                            </children>
+                                        </VBox>
+
+                                        <Label fx:id="LabelSuccessConvert"
+                                               alignment="CENTER"
+                                               prefWidth="280.0"
+                                               textFill="#32CD32"
+                                               visible="false"
+                                               managed="false"
+                                               StackPane.alignment="BOTTOM_CENTER"
+                                               translateY="20.0" />
                                     </children>
-                                </VBox>
+                                </StackPane>
                                 <ScrollPane fx:id="scrollPanePhoto"
-                                            fitToHeight="true" fitToWidth="true" pannable="true" prefWidth="590.0" VBox.vgrow="ALWAYS"
-                                            style="-fx-background: #3b3b3b; -fx-border-color: #3b3b3b; -fx-background-color: transparent;">
+                                            fitToHeight="true" fitToWidth="true" pannable="true" prefWidth="590.0" VBox.vgrow="ALWAYS">
                                     <VBox.margin>
                                         <Insets top="20.0" />
                                     </VBox.margin>
                                     <content>
                                         <StackPane fx:id="imageContainer" minHeight="200.0" minWidth="560.0">
                                             <children>
-                                                <ImageView fx:id="imageViewPhoto" fitHeight="260.0" fitWidth="560.0"
-                                                           pickOnBounds="true" preserveRatio="true" />
+                                                <Group>
+                                                    <children>
+                                                        <ImageView fx:id="imageViewPhoto" fitHeight="260.0" fitWidth="560.0"
+                                                                   pickOnBounds="true" preserveRatio="true" />
+                                                    </children>
+                                                </Group>
                                             </children>
                                         </StackPane>
                                     </content>
@@ -99,6 +117,8 @@
                                                prefWidth="400.0"
                                                text="none"
                                                textFill="RED" />
+
+                                        <Button mnemonicParsing="false" fx:id="btnReset" onAction="#isPressedReset" prefWidth="220.0" text="Reset" />
                                     </children>
                                 </VBox>
                             </children>

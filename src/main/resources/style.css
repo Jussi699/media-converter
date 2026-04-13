@@ -121,3 +121,22 @@
 .combo-box{
     -fx-pref-height: 22px;
 }
+
+#navHomeButton #navHomeButton {
+    -fx-background-color: #323232;
+    -fx-text-fill: white;
+    -fx-background-radius: 8;
+}
+
+#scrollPanePhoto{
+    -fx-background: #3b3b3b;
+    -fx-border-color: #3b3b3b;
+    -fx-background-color: transparent;
+}
+
+#btnOpenConverter{
+    -fx-background-color: #32CD32;
+    -fx-text-fill: black;
+    -fx-font-weight: bold;
+    -fx-background-radius: 8
+}

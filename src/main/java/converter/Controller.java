@@ -1,7 +1,8 @@
 package converter;
 
+import javafx.application.Platform;
 import javafx.embed.swing.SwingFXUtils;
-import javafx.geometry.Bounds;
+import javafx.geometry.Pos;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.StackPane;
@@ -28,7 +29,6 @@ import java.util.List;
 public class Controller {
     private static final int SUCCESS_MESSAGE_DURATION_SECONDS = 5;
     private static final String ICO_PLACEHOLDER = "to ICO";
-    private static final double IMAGE_VIEWPORT_PADDING = 8.0;
 
     private File image;
     private File outputPath;
@@ -36,6 +36,9 @@ public class Controller {
     private int sizeIcoImage;
     private final PauseTransition hideSuccessMessageTimer =
             new PauseTransition(Duration.seconds(SUCCESS_MESSAGE_DURATION_SECONDS));
+
+    @FXML
+    private Button btnOpenConverter;
 
     @FXML
     private Label LabelSelectImageName;
@@ -66,6 +69,9 @@ public class Controller {
 
     @FXML
     private AnchorPane AnchorPane;
+
+    @FXML
+    private Button btnReset;
 
     @FXML
     private Pane mainPane;
@@ -134,10 +140,16 @@ public class Controller {
         assert btnToWEBM != null : "fx:id=\"btnToWEBM\" was not injected!";
         assert LabelPlus != null : "fx:id=\"LabelPlus\" was not injected!";
         assert LabelMinus != null : "fx:id=\"LabelMinus\" was not injected!";
+        assert btnReset != null : "fx:id=\"btnReset\" was not injected!";
 
         Tooltip tooltipChoiceDir = new Tooltip("Standard directory, Desktop");
         btnChoiceDirForSaveImage.setTooltip(tooltipChoiceDir);
 
+        imageContainer.setManaged(true);
+        imageContainer.setAlignment(Pos.CENTER);
+        scrollPanePhoto.setPannable(true);
+        scrollPanePhoto.setFitToHeight(true);
+        scrollPanePhoto.setFitToWidth(true);
         imageScaleSlider.setMin(1.0);
         imageScaleSlider.setMax(5.0);
         imageScaleSlider.setValue(1.0);
@@ -145,7 +157,10 @@ public class Controller {
         imageViewPhoto.scaleXProperty().bind(imageScaleSlider.valueProperty());
         imageViewPhoto.scaleYProperty().bind(imageScaleSlider.valueProperty());
 
-        imageScaleSlider.valueProperty().addListener((_, _, newVal) -> updateImageContainerSize(newVal.doubleValue()));
+        imageScaleSlider.valueProperty().addListener((_, _, newVal) -> {
+            updateImageContainerSize(newVal.doubleValue());
+            Platform.runLater(this::adjustScrollBarToCenter);
+        });
 
         scrollPanePhoto.viewportBoundsProperty().addListener((_, _, _) -> updateImageSize());
         imageViewPhoto.imageProperty().addListener((_, _, _) -> updateImageSize());
@@ -216,6 +231,8 @@ public class Controller {
                         double size = Double.parseDouble(newVal);
                         imageViewPhoto.setFitHeight(size);
                         imageViewPhoto.setFitWidth(size);
+                        updateImageContainerSize(imageScaleSlider.getValue());
+                        Platform.runLater(this::adjustScrollBarToCenter);
                     } catch (NumberFormatException e) {
                         ErrorLogger.alertDialog(Alert.AlertType.WARNING, "Error", "Format", "Invalid size value!");
                     }
@@ -279,6 +296,7 @@ public class Controller {
             }
 
             Image fxImage = SwingFXUtils.toFXImage(bi, null);
+            imageScaleSlider.setValue(1.0);
             imageViewPhoto.setImage(fxImage);
 
             updateImageSize();
@@ -315,34 +333,21 @@ public class Controller {
 
 
     private void updateImageSize() {
-        if (imageViewPhoto.getImage() != null && image != null) {
-            if (image.getName().toLowerCase().endsWith(".ico")) {
-                String val = ComboBoxIcoSize.getValue();
-                double size = (val == null || val.equals(ICO_PLACEHOLDER)) ? 16 : Double.parseDouble(val);
+        if (imageViewPhoto.getImage() != null) {
+            if (imageScaleSlider.getValue() == 1.0) {
+                double viewPortWidth = scrollPanePhoto.getViewportBounds().getWidth();
+                double viewPortHeight = scrollPanePhoto.getViewportBounds().getHeight();
 
-                imageViewPhoto.setPreserveRatio(false);
-                imageViewPhoto.setFitHeight(size);
-                imageViewPhoto.setFitWidth(size);
-            } else {
-                Bounds viewportBounds = scrollPanePhoto.getViewportBounds();
-                double viewportHeight = viewportBounds.getHeight();
-                double viewportWidth = viewportBounds.getWidth();
-
-                if (viewportHeight <= 0) {
-                    viewportHeight = scrollPanePhoto.getHeight();
-                }
-
-                if (viewportWidth <= 0) {
-                    viewportWidth = scrollPanePhoto.getWidth();
-                }
-
+                imageViewPhoto.setFitWidth(viewPortWidth - 20);
+                imageViewPhoto.setFitHeight(viewPortHeight - 20);
                 imageViewPhoto.setPreserveRatio(true);
-                imageViewPhoto.setFitHeight(Math.max(1, viewportHeight - IMAGE_VIEWPORT_PADDING));
-                imageViewPhoto.setFitWidth(Math.max(1, viewportWidth - IMAGE_VIEWPORT_PADDING));
             }
-
-            updateImageContainerSize(imageScaleSlider.getValue());
         }
+    }
+
+    private void adjustScrollBarToCenter() {
+            scrollPanePhoto.setHvalue(0.5);
+            scrollPanePhoto.setVvalue(0.5);
     }
 
     private void updateImageContainerSize(double zoom) {
@@ -351,6 +356,8 @@ public class Controller {
 
         imageContainer.setMinWidth(newWidth);
         imageContainer.setMinHeight(newHeight);
+        imageContainer.setPrefWidth(newWidth);
+        imageContainer.setPrefHeight(newHeight);
     }
 
     @FXML
@@ -514,4 +521,15 @@ public class Controller {
 
         return "-fx-background-color: #323232; -fx-text-fill: white; -fx-background-radius: 8;";
     }
+
+    public void isPressedReset() {
+        image = null;
+        LabelSelectImageName.setText("none");
+        imageViewPhoto.setImage(null);
+        selectRasterFormat("jpeg");
+        selectRasterFormat("webp");
+        selectRasterFormat("png");
+        selectRasterFormat("ico");
+    }
+
 }
