@@ -1,14 +1,19 @@
 package model.converter;
 
+import com.luciad.imageio.webp.WebPWriteParam;
 import model.logger.ErrorLogger;
 import net.ifok.image.image4j.codec.ico.ICOEncoder;
 import net.ifok.image.image4j.codec.ico.ICODecoder;
 
+import javax.imageio.IIOImage;
 import javax.imageio.ImageIO;
+import javax.imageio.ImageWriter;
+import javax.imageio.stream.ImageOutputStream;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
 import java.util.UUID;
@@ -77,7 +82,7 @@ public class ConverterImage {
         return outputImage;
     }
 
-    private static String normalizeOutputFormat(String typeFile) {
+    public static String normalizeOutputFormat(String typeFile) {
         if (typeFile == null) {
             throw new IllegalArgumentException("Output format is null");
         }
@@ -85,7 +90,7 @@ public class ConverterImage {
         return "jpeg".equalsIgnoreCase(typeFile) ? "jpg" : typeFile.toLowerCase(Locale.ROOT);
     }
 
-    private static BufferedImage prepareImageForFormat(BufferedImage source, String format) {
+    public static BufferedImage prepareImageForFormat(BufferedImage source, String format) {
         if (!"jpg".equals(format) && !"jpeg".equals(format)) {
             return source;
         }
@@ -164,6 +169,32 @@ public class ConverterImage {
         }
 
         return fileName.substring(0, dotIndex);
+    }
+
+    private static void writeWebp(BufferedImage image, File outputFile) throws IOException {
+        Iterator<ImageWriter> writers = ImageIO.getImageWritersByMIMEType("image/webp");
+        if (!writers.hasNext()) {
+            writers = ImageIO.getImageWritersByFormatName("webp");
+        }
+
+        if (!writers.hasNext()) {
+            throw new IOException("WebP writer is not available. Add org.sejda.imageio:webp-imageio dependency.");
+        }
+
+        ImageWriter writer = writers.next();
+
+        try (ImageOutputStream ios = ImageIO.createImageOutputStream(outputFile)) {
+            writer.setOutput(ios);
+
+            WebPWriteParam writeParam = new WebPWriteParam(writer.getLocale());
+            writeParam.setCompressionMode(WebPWriteParam.MODE_EXPLICIT);
+            writeParam.setCompressionType(writeParam.getCompressionTypes()[WebPWriteParam.LOSSY_COMPRESSION]);
+            writeParam.setCompressionQuality(0.90f);
+
+            writer.write(null, new IIOImage(image, null, null), writeParam);
+        } finally {
+            writer.dispose();
+        }
     }
 }
 

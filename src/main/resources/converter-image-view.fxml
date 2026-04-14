@@ -61,7 +61,7 @@
 
                 <ComboBox fx:id="ComboBoxIcoSize"
                           onAction="#onChoiceIcoSize"
-                          prefWidth="95.0" />
+                          prefWidth="85.0"/>
         </HBox>
 
         <StackPane translateY="10.0">

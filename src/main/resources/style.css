@@ -43,13 +43,18 @@
 }
 
 .combo-box {
-    -fx-pref-width: 70px;
+    -fx-translate-y: -1px;
+    -fx-min-height: 23px;
     -fx-font-family: "Cascadia Code";
     -fx-font-weight: bold;
     -fx-background-color: LightGrey;
     -fx-background-insets: 0;
     -fx-background-radius: 10;
     -fx-border-radius: 10;
+}
+
+.combo-box-popup .list-view {
+    -fx-min-height: 110px;
 }
 
 .combo-box .list-cell {

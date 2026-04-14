@@ -92,7 +92,7 @@ public class ConverterImageViewController {
             LabelSuccessConvert.setText("");
         });
 
-        ComboBoxIcoSize.getItems().addAll("16", "32", "64", "128");
+        ComboBoxIcoSize.getItems().addAll("16", "32", "64", "128", "256");
         ComboBoxIcoSize.setDisable(false);
         ComboBoxIcoSize.setValue(ICO_PLACEHOLDER);
 
@@ -239,7 +239,6 @@ public class ConverterImageViewController {
 
         return largestImage;
     }
-
 
     private void updateImageSize() {
         if (imageViewPhoto.getImage() != null) {
