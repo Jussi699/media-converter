@@ -30,7 +30,8 @@ public class ConverterMP3ViewController {
     private final PauseTransition hideSuccessMessageTimer =
             new PauseTransition(Duration.seconds(SUCCESS_MESSAGE_DURATION_SECONDS));
 
-    @FXML public VBox converterMP3Page;
+    @FXML private ProgressBar progressBarConvert;
+    @FXML private VBox converterMP3Page;
     @FXML private Label labelConvertMP3;
     @FXML private Button btnSelectAudioVideoFile;
     @FXML private Button btnChoiceDirForSaveMP3;
@@ -43,14 +44,16 @@ public class ConverterMP3ViewController {
     @FXML private ComboBox<String> comboBoxChoiceChannels;
     @FXML private ComboBox<String> comboBoxChoiceSamplingRate;
 
-
     @FXML
     public void initialize() {
         outputPath = DEFAULT_PATH;
         setupClearMessageTimer(labelSuccessConvert, hideSuccessMessageTimer);
         labelSelectAudioName.setText(DEFAULT_FILE_TEXT_SELECT_FILE);
 
+        hideSuccessMessage(labelSuccessConvert, hideSuccessMessageTimer);
+
         setupComboBox(comboBoxChoiceBitRate);
+
         setupComboBox(comboBoxChoiceChannels);
         setupComboBox(comboBoxChoiceSamplingRate);
 
@@ -98,7 +101,29 @@ public class ConverterMP3ViewController {
 
     @FXML
     public void onStartConversionPressed() {
-        ConverterToMP3.convert(file, outputPath, bitRate, channel, samplingRate);
+        if (file == null) {
+            ErrorLogger.alertDialog(Alert.AlertType.WARNING, "WARN", "File missing!", "Select audio or video file!");
+            return;
+        }
+
+        progressBarConvert.setProgress(0);
+        btnSubmitConvert.setDisable(true);
+        ConverterToMP3.convert(file, outputPath, bitRate, channel, samplingRate, progress -> {
+            javafx.application.Platform.runLater(() -> progressBarConvert.setProgress(progress));
+        }).thenAccept(success -> {
+            javafx.application.Platform.runLater(() -> {
+                btnSubmitConvert.setDisable(false);
+                if (success) {
+                    showSuccessMessage(labelSuccessConvert, "mp3", hideSuccessMessageTimer);
+                    progressBarConvert.setProgress(1.0);
+                } else {
+                    labelSuccessConvert.setText(DEFAULT_FILE_TEXT_SUCCESS_DOES_NOT_CONVERT);
+                    labelSuccessConvert.setVisible(true);
+                    labelSuccessConvert.setManaged(true);
+                    hideSuccessMessageTimer.playFromStart();
+                }
+            });
+        });
     }
 
     @FXML
@@ -109,6 +134,7 @@ public class ConverterMP3ViewController {
         bitRate = 128;
         channel = 2;
         samplingRate = 44100;
+        progressBarConvert.setProgress(0);
     }
 
     public void onChoiceBitRate() {

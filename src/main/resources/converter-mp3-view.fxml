@@ -1,98 +1,57 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import javafx.geometry.Insets?>
-<?import javafx.scene.control.Button?>
-<?import javafx.scene.control.Label?>
-<?import javafx.scene.layout.HBox?>
-<?import javafx.scene.layout.Region?>
-<?import javafx.scene.layout.VBox?>
-<?import javafx.scene.layout.StackPane?>
+<?import javafx.geometry.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
 
-<?import javafx.scene.control.ComboBox?>
-<VBox fx:id="converterMP3Page"
-      alignment="TOP_CENTER"
-      prefHeight="600.0"
-      prefWidth="630.0"
-      spacing="20.0"
-      style="-fx-background-color: #4b4b4b;"
-      xmlns="http://javafx.com/javafx/25"
-      xmlns:fx="http://javafx.com/fxml/1"
-      fx:controller="converter.ConverterMP3ViewController">
+<VBox fx:id="converterMP3Page" alignment="TOP_CENTER" prefHeight="600.0" prefWidth="630.0" spacing="20.0" style="-fx-background-color: #4b4b4b;" xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1" fx:controller="converter.ConverterMP3ViewController">
 
-    <Label fx:id="labelConvertMP3"
-           alignment="CENTER"
-           prefWidth="260.0"
-           style="-fx-font-size: 22px; -fx-font-weight: bold;"
-           text="MP3 Converter"
-           textFill="WHITE">
+    <Label fx:id="labelConvertMP3" alignment="CENTER" prefWidth="260.0" style="-fx-font-size: 22px; -fx-font-weight: bold;" text="MP3 Converter" textFill="WHITE">
         <VBox.margin>
-            <Insets top="10.0"/>
+            <Insets top="10.0" />
         </VBox.margin>
     </Label>
 
     <HBox alignment="CENTER" spacing="20.0">
-        <Button fx:id="btnSelectAudioVideoFile"
-                mnemonicParsing="false"
-                onAction="#onSelectAudioVideoPressed"
-                prefWidth="170.0"
-                text="Select audio/video"/>
+        <Button fx:id="btnSelectAudioVideoFile" mnemonicParsing="false" onAction="#onSelectAudioVideoPressed" prefWidth="170.0" text="Select audio/video" />
 
-        <Button fx:id="btnChoiceDirForSaveMP3"
-                mnemonicParsing="false"
-                onAction="#onSelectOutputDirectoryPressed"
-                prefWidth="170.0"
-                text="Directory for save"/>
+        <Button fx:id="btnChoiceDirForSaveMP3" mnemonicParsing="false" onAction="#onSelectOutputDirectoryPressed" prefWidth="170.0" text="Directory for save" />
     </HBox>
 
     <HBox alignment="CENTER" spacing="20.0" translateY="5.0">
-        <ComboBox fx:id="comboBoxChoiceBitRate"
-                  onAction="#onChoiceBitRate"
-                  prefWidth="120.0"/>
+        <ComboBox fx:id="comboBoxChoiceBitRate" onAction="#onChoiceBitRate" prefWidth="120.0" />
 
-        <ComboBox fx:id="comboBoxChoiceChannels"
-                  onAction="#onChoiceChannels"
-                  prefWidth="120.0"/>
+        <ComboBox fx:id="comboBoxChoiceChannels" onAction="#onChoiceChannels" prefWidth="120.0" />
 
-        <ComboBox fx:id="comboBoxChoiceSamplingRate"
-                  onAction="#onChoiceSamplingRate"
-                  prefWidth="120.0"/>
+        <ComboBox fx:id="comboBoxChoiceSamplingRate" onAction="#onChoiceSamplingRate" prefWidth="120.0" />
     </HBox>
 
     <StackPane translateY="10.0">
         <VBox alignment="CENTER" spacing="10.0">
-            <Button fx:id="btnSubmitConvert"
-                    mnemonicParsing="false"
-                    onAction="#onStartConversionPressed"
-                    prefWidth="210.0"
-                    text="Convert and Download"/>
+            <Button fx:id="btnSubmitConvert" mnemonicParsing="false" onAction="#onStartConversionPressed" prefWidth="210.0" text="Convert and Download" />
         </VBox>
+    </StackPane>
+
+    <VBox alignment="CENTER" spacing="10.0">
+        <ProgressBar fx:id="progressBarConvert" prefWidth="200.0" progress="0.0" visible="true"/>
         <Label fx:id="labelSuccessConvert"
                alignment="CENTER"
+               managed="true"
                prefWidth="280.0"
                textFill="#32CD32"
                visible="false"
-               managed="false"
-               StackPane.alignment="BOTTOM_CENTER"
-               translateY="20.0"/>
-    </StackPane>
+               text="Convert has been success!" />
+    </VBox>
 
-    <Region VBox.vgrow="ALWAYS"/>
+    <Region VBox.vgrow="ALWAYS" />
 
     <VBox alignment="CENTER" spacing="10.0">
-        <Label fx:id="labelSelectAudioName"
-               alignment="CENTER"
-               prefWidth="400.0"
-               textFill="#f0f0f0"
-               wrapText="true"/>
+        <Label fx:id="labelSelectAudioName" alignment="CENTER" prefWidth="400.0" textFill="#f0f0f0" wrapText="true" />
 
-        <Button fx:id="btnReset"
-                mnemonicParsing="false"
-                onAction="#onResetPressed"
-                prefWidth="220.0"
-                text="Reset"/>
+        <Button fx:id="btnReset" mnemonicParsing="false" onAction="#onResetPressed" prefWidth="220.0" text="Reset" />
     </VBox>
 
     <padding>
-        <Insets left="16.0" right="16.0" bottom="16.0"/>
+        <Insets bottom="16.0" left="16.0" right="16.0" />
     </padding>
 </VBox>

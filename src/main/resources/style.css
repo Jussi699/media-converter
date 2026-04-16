@@ -145,3 +145,12 @@
 #comboBoxChoiceSampleRate .list-cell{
     -fx-font-size: 30px !important;
 }
+
+.progress-bar > .track {
+    -fx-background-radius: 10px;
+}
+
+.progress-bar > .bar {
+    -fx-background-radius: 10px;
+    -fx-background-color: #32CD32;
+}
