@@ -11,6 +11,7 @@ import ws.schild.jave.info.MultimediaInfo;
 import ws.schild.jave.progress.EncoderProgressListener;
 
 import java.io.File;
+import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 
@@ -27,7 +28,7 @@ public class ConverterToMP3 {
             String fileName = file.getName();
             int dotIndex = fileName.lastIndexOf('.');
             String nameWithoutExtension = (dotIndex == -1) ? fileName : fileName.substring(0, dotIndex);
-            target = new File(pathForSave, nameWithoutExtension + ".mp3");
+            target = new File(pathForSave, nameWithoutExtension + UUID.randomUUID().toString().replace("-", "") + ".mp3");
         } else {
             target = pathForSave;
         }

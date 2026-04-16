@@ -1,114 +1,12 @@
-.label{
-    -fx-font-family: "Cascadia Code" ;
-    -fx-font-size: 18;
+.label {
+    -fx-font-family: "Cascadia Code";
+    -fx-font-size: 18px;
     -fx-font-style: italic;
     -fx-font-weight: bold;
 }
 
-#LabelSelectImageName {
-    -fx-font-size: 8px !important;
-}
-
-.button{
-    -fx-font-family: "Cascadia Code";
-    -fx-font-weight: bold;
-    -fx-background-color: LightGrey;
-    -fx-background-insets: 0;
-    -fx-background-radius: 10;
-
-}
-
-.button:hover {
-    -fx-background-color: LightBlue;
-    -fx-scale-x: 1.02;
-    -fx-scale-y: 1.02;
-}
-
-.toggle-button {
-    -fx-font-family: "Cascadia Code";
-    -fx-font-weight: bold;
-    -fx-background-color: LightGrey;
-    -fx-background-insets: 0;
-    -fx-background-radius: 10;
-}
-
-.toggle-button:selected{
-    -fx-background-color: #32CD32;
-}
-
-.toggle-button:hover{
-    -fx-background-color: LightBlue;
-    -fx-scale-x: 1.02;
-    -fx-scale-y: 1.02;
-}
-
-.combo-box {
-    -fx-translate-y: -1px;
-    -fx-min-height: 23px;
-    -fx-font-family: "Cascadia Code";
-    -fx-font-weight: bold;
-    -fx-background-color: LightGrey;
-    -fx-background-insets: 0;
-    -fx-background-radius: 10;
-    -fx-border-radius: 10;
-}
-
-.combo-box-popup .list-view {
-    -fx-background-color: LightGrey;
-    -fx-background-radius: 10;
-    -fx-border-radius: 10;
-    -fx-pref-width: 70px;
-}
-
-.combo-box .list-cell {
-    -fx-font-family: "Cascadia Code";
-    -fx-font-size: 10px;
-    -fx-font-weight: bold;
-    -fx-text-fill: black;
-    -fx-alignment: center;
-    -fx-background-color: transparent;
-}
-
-.combo-box:hover {
-    -fx-background-color: #32CD32;
-    -fx-scale-x: 1.02;
-    -fx-scale-y: 1.02;
-}
-
-.combo-box .arrow-button {
-    -fx-background-color: transparent;
-    -fx-font-size: 10;
-}
-
-.combo-box .arrow {
-    -fx-background-color: black;
-}
-
-.combo-box.selected-choice {
-    -fx-background-color: #32CD32;
-}
-
-.combo-box-popup .list-view .list-cell {
-    -fx-font-family: "Cascadia Code";
-    -fx-font-size: 10px;
-    -fx-background-radius: 10;
-    -fx-font-weight: bold;
-    -fx-text-fill: black;
-    -fx-alignment: center;
-    -fx-background-color: LightGrey;
-}
-
-.combo-box-popup .list-view .list-cell:hover,
-.combo-box-popup .list-view .list-cell:filled:selected {
-    -fx-background-color: #32CD32;
-    -fx-text-fill: black;
-    -fx-background-radius: 8;
-}
-
-.combo-box > .arrow-button {
-    -fx-padding: 0 2 0 2;
-    -fx-background-insets: 0;
-    -fx-background-radius: 0 10 10 0;
+#labelSelectImageName, #labelSelectAudioName {
+    -fx-font-size: 8px;
 }
 
 #labelSuccessConvert {
@@ -118,32 +16,90 @@
     -fx-font-size: 10px;
 }
 
-.combo-box{
+.button, .toggle-button {
+    -fx-font-family: "Cascadia Code";
+    -fx-font-weight: bold;
+    -fx-background-color: LightGrey;
+    -fx-background-insets: 0;
+    -fx-background-radius: 10;
+}
+
+.button:hover, .toggle-button:hover {
+    -fx-background-color: LightBlue;
+    -fx-scale-x: 1.02;
+    -fx-scale-y: 1.02;
+}
+
+.toggle-button:selected {
+    -fx-background-color: #32CD32;
+}
+
+.combo-box, .comboBoxMP3 {
+    -fx-translate-y: -1px;
     -fx-pref-height: 22px;
+    -fx-min-height: 23px;
+    -fx-font-family: "Cascadia Code";
+    -fx-font-weight: bold;
+    -fx-background-color: LightGrey;
+    -fx-background-insets: 0;
+    -fx-background-radius: 10;
+    -fx-border-radius: 10;
 }
 
-#navHomeButton #navHomeButton {
-    -fx-background-color: #323232;
-    -fx-text-fill: white;
-    -fx-background-radius: 8;
+.combo-box:hover, .comboBoxMP3:hover {
+    -fx-background-color: #32CD32;
+    -fx-scale-x: 1.02;
+    -fx-scale-y: 1.02;
 }
 
-#scrollPanePhoto{
-    -fx-background: #3b3b3b;
-    -fx-border-color: #3b3b3b;
+.combo-box .list-cell, .comboBoxMP3 .list-cell {
+    -fx-font-family: "Cascadia Code";
+    -fx-font-size: 12px;
+    -fx-font-weight: bold;
+    -fx-text-fill: black;
+    -fx-alignment: center;
     -fx-background-color: transparent;
 }
 
-#btnOpenConverter{
-    -fx-background-color: #32CD32;
-    -fx-text-fill: black;
-    -fx-font-weight: bold;
-    -fx-background-radius: 8
+.combo-box-popup .list-view {
+    -fx-background-color: LightGrey;
+    -fx-background-radius: 10;
+    -fx-border-radius: 10;
+    -fx-pref-width: 120px;
 }
 
-#comboBoxChoiceBitRate, #comboBoxChoiceChannels,
-#comboBoxChoiceSampleRate .list-cell{
-    -fx-font-size: 30px !important;
+.combo-box-popup .list-view .list-cell {
+    -fx-font-family: "Cascadia Code";
+    -fx-font-size: 12px;
+    -fx-font-weight: bold;
+    -fx-text-fill: black;
+    -fx-alignment: center;
+    -fx-background-color: LightGrey;
+    -fx-background-radius: 10;
+    -fx-padding: 4px 8px;
+}
+
+.combo-box-popup .list-view .list-cell:hover,
+.combo-box-popup .list-view .list-cell:filled:selected {
+    -fx-background-color: #32CD32;
+    -fx-text-fill: black;
+    -fx-background-radius: 8;
+}
+
+.combo-box > .arrow-button, .comboBoxMP3 > .arrow-button {
+    -fx-padding: 0 2 0 2;
+    -fx-background-insets: 0;
+    -fx-background-radius: 0 10 10 0;
+}
+
+.combo-box .arrow, .comboBoxMP3 .arrow {
+    -fx-background-color: black;
+}
+
+#comboBoxIcoSize .list-view {
+    -fx-pref-width: 85px;
+    -fx-min-width: 85px;
+    -fx-max-width: 85px;
 }
 
 .progress-bar > .track {
@@ -153,4 +109,23 @@
 .progress-bar > .bar {
     -fx-background-radius: 10px;
     -fx-background-color: #32CD32;
+}
+
+#scrollPanePhoto {
+    -fx-background: #3b3b3b;
+    -fx-border-color: #3b3b3b;
+    -fx-background-color: transparent;
+}
+
+#btnOpenConverter {
+    -fx-background-color: #32CD32;
+    -fx-text-fill: black;
+    -fx-font-weight: bold;
+    -fx-background-radius: 8;
+}
+
+#navHomeButton {
+    -fx-background-color: #323232;
+    -fx-text-fill: white;
+    -fx-background-radius: 8;
 }

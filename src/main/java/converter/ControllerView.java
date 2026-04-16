@@ -1,21 +1,16 @@
 package converter;
 
-import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
-import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 
 public class ControllerView {
 
     @FXML private VBox converterMP3Page;
-    @FXML private StackPane rightPane;
-    @FXML private VBox leftPane;
     @FXML private VBox homeView;
     @FXML private VBox converterImagePage;
     @FXML private VBox converterVideoPage;
     @FXML private HomeViewController homeViewController;
-    @FXML private ConverterImageViewController converterImageViewController;
     @FXML private Button navHomeButton;
     @FXML private Button navConverterImageButton;
     @FXML private Button navConverterVideoButton;

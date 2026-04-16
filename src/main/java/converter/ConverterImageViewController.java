@@ -6,7 +6,6 @@ import javafx.geometry.Pos;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.StackPane;
-import javafx.scene.layout.VBox;
 import model.converterImage.ConverterImage;
 import model.converterImage.DetermineType;
 import model.logger.ErrorLogger;
@@ -38,25 +37,18 @@ public class ConverterImageViewController {
     private final PauseTransition hideSuccessMessageTimer =
             new PauseTransition(Duration.seconds(SUCCESS_MESSAGE_DURATION_SECONDS));
 
-    @FXML private VBox converterImagePage;
-    @FXML private VBox converterPage;
     @FXML private Label labelSelectImageName;
     @FXML private Slider imageScaleSlider;
     @FXML private ImageView imageViewPhoto;
-    @FXML private Button btnReset;
     @FXML private Button btnSelectPhotoFile;
-    @FXML private Label LabelConvertPhoto;
     @FXML private ToggleButton btnToPNG;
     @FXML private ToggleButton btnToJPEG;
-    @FXML private Button btnSubmitConvert;
     @FXML private Button btnChoiceDirForSaveImage;
     @FXML private ComboBox<String> comboBoxIcoSize;
     @FXML private Label labelSuccessConvert;
     @FXML private ScrollPane scrollPanePhoto;
     @FXML private StackPane imageContainer;
     @FXML private ToggleButton btnToWEBM;
-    @FXML private Label LabelPlus;
-    @FXML private Label LabelMinus;
 
     @FXML
     public void initialize() {
@@ -349,19 +341,23 @@ public class ConverterImageViewController {
                 showSuccessMessage(labelSuccessConvert, targetFormat, hideSuccessMessageTimer);
                 ErrorLogger.info("Conversion completed: " + convertedFile.getName());
             } else {
-                ErrorLogger.warn("Conversion finished but file not found or empty: " + convertedFile.getName());
+                ErrorLogger.warn("Conversion finished but file not found or empty: " + (convertedFile != null ? convertedFile.getName() : "null"));
+                showErrorMessage(labelSuccessConvert, "Conversion Failed: File missing", hideSuccessMessageTimer);
                 ErrorLogger.alertDialog(Alert.AlertType.WARNING, "Warning", "Missing File",
                         "Conversion finished, but saved file was not found.");
             }
 
         } catch (IllegalArgumentException e) {
             ErrorLogger.log(1002, ErrorLogger.Level.WARN, "Invalid parameters for conversion", e);
+            showErrorMessage(labelSuccessConvert, "Error: Invalid parameters", hideSuccessMessageTimer);
             ErrorLogger.alertDialog(Alert.AlertType.WARNING, "Warning", "Invalid Parameters", e.getMessage());
         } catch (IOException e) {
             ErrorLogger.log(105, ErrorLogger.Level.ERROR, "IO Error during conversion", e);
+            showErrorMessage(labelSuccessConvert, "Error: " + e.getMessage(), hideSuccessMessageTimer);
             ErrorLogger.alertDialog(Alert.AlertType.ERROR, "Error", "Conversion Failed", e.getMessage());
         } catch (Exception e) {
             ErrorLogger.log(1001, ErrorLogger.Level.ERROR, "Unexpected error during conversion", e);
+            showErrorMessage(labelSuccessConvert, "System Error: " + e.getMessage(), hideSuccessMessageTimer);
             ErrorLogger.alertDialog(Alert.AlertType.ERROR, "Error", "System Error", "Something went wrong: " + e.getMessage());
         }
     }

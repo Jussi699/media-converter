@@ -3,7 +3,11 @@ package converter;
 import javafx.animation.PauseTransition;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
-import javafx.scene.layout.VBox;
+
+import javafx.scene.input.DragEvent;
+import javafx.scene.input.Dragboard;
+import javafx.scene.input.TransferMode;
+import javafx.scene.layout.StackPane;
 import javafx.stage.Stage;
 import javafx.util.Duration;
 import model.converterMP3.ConverterToMP3;
@@ -16,9 +20,6 @@ import java.nio.file.Paths;
 import static model.workWithFiles.Util.*;
 
 public class ConverterMP3ViewController {
-    private static final String DEFAULT_FILE_TEXT_SELECT_FILE = "Selected file: none";
-    private static final String DEFAULT_FILE_TEXT_SUCCESS_CONVERT = "Successfully converted!";
-    private static final String DEFAULT_FILE_TEXT_SUCCESS_DOES_NOT_CONVERT = "So close, yet no success";
     private static final int SUCCESS_MESSAGE_DURATION_SECONDS = 5;
 
     private final File DEFAULT_PATH = Paths.get(System.getProperty("user.home"), "Desktop").toFile();
@@ -30,15 +31,12 @@ public class ConverterMP3ViewController {
     private final PauseTransition hideSuccessMessageTimer =
             new PauseTransition(Duration.seconds(SUCCESS_MESSAGE_DURATION_SECONDS));
 
+    @FXML private StackPane dropZone;
     @FXML private ProgressBar progressBarConvert;
-    @FXML private VBox converterMP3Page;
-    @FXML private Label labelConvertMP3;
     @FXML private Button btnSelectAudioVideoFile;
     @FXML private Button btnChoiceDirForSaveMP3;
     @FXML private Label labelSelectAudioName;
-    @FXML private ToggleButton btnToMP3;
     @FXML private Button btnSubmitConvert;
-    @FXML private Button btnReset;
     @FXML private Label labelSuccessConvert;
     @FXML private ComboBox<String> comboBoxChoiceBitRate;
     @FXML private ComboBox<String> comboBoxChoiceChannels;
@@ -48,14 +46,18 @@ public class ConverterMP3ViewController {
     public void initialize() {
         outputPath = DEFAULT_PATH;
         setupClearMessageTimer(labelSuccessConvert, hideSuccessMessageTimer);
-        labelSelectAudioName.setText(DEFAULT_FILE_TEXT_SELECT_FILE);
+        labelSelectAudioName.setText("Selected file: none");
 
-        hideSuccessMessage(labelSuccessConvert, hideSuccessMessageTimer);
+        labelSuccessConvert.setVisible(false);
+        labelSuccessConvert.setManaged(true);
 
         setupComboBox(comboBoxChoiceBitRate);
-
         setupComboBox(comboBoxChoiceChannels);
         setupComboBox(comboBoxChoiceSamplingRate);
+
+        comboBoxChoiceBitRate.getStyleClass().add("comboBoxMP3");
+        comboBoxChoiceChannels.getStyleClass().add("comboBoxMP3");
+        comboBoxChoiceSamplingRate.getStyleClass().add("comboBoxMP3");
 
         comboBoxChoiceBitRate.getItems().addAll("128 kbps", "192 kbps", "256 kbps", "320 kbps");
         comboBoxChoiceChannels.getItems().addAll("1 Channels", "2 Channels");
@@ -64,13 +66,14 @@ public class ConverterMP3ViewController {
                                                         "22050 Hz", "24000 Hz",
                                                         "32000 Hz", "44100 Hz", "48000 Hz");
 
-        comboBoxChoiceBitRate.setValue("128 kbps");
+        comboBoxChoiceBitRate.setValue("320 kbps");
         comboBoxChoiceChannels.setValue("2 Channels");
-        comboBoxChoiceSamplingRate.setValue("44100 Hz");
+        comboBoxChoiceSamplingRate.setValue("48000 Hz");
 
-        bitRate = 128;
+        bitRate = 320;
         channel = 2;
-        samplingRate = 44100;
+        samplingRate = 48000;
+
     }
 
     @FXML
@@ -95,12 +98,12 @@ public class ConverterMP3ViewController {
     }
 
     @FXML
-    public void onFormatMp3Pressed() {
-
-    }
-
-    @FXML
     public void onStartConversionPressed() {
+        if(outputPath == null){
+            ErrorLogger.alertDialog(Alert.AlertType.WARNING, "WARN", "Output path missing!", "Select output directory!");
+            return;
+        }
+
         if (file == null) {
             ErrorLogger.alertDialog(Alert.AlertType.WARNING, "WARN", "File missing!", "Select audio or video file!");
             return;
@@ -110,31 +113,30 @@ public class ConverterMP3ViewController {
         btnSubmitConvert.setDisable(true);
         ConverterToMP3.convert(file, outputPath, bitRate, channel, samplingRate, progress -> {
             javafx.application.Platform.runLater(() -> progressBarConvert.setProgress(progress));
-        }).thenAccept(success -> {
-            javafx.application.Platform.runLater(() -> {
-                btnSubmitConvert.setDisable(false);
-                if (success) {
-                    showSuccessMessage(labelSuccessConvert, "mp3", hideSuccessMessageTimer);
-                    progressBarConvert.setProgress(1.0);
-                } else {
-                    labelSuccessConvert.setText(DEFAULT_FILE_TEXT_SUCCESS_DOES_NOT_CONVERT);
-                    labelSuccessConvert.setVisible(true);
-                    labelSuccessConvert.setManaged(true);
-                    hideSuccessMessageTimer.playFromStart();
-                }
-            });
-        });
+        }).thenAccept(success -> javafx.application.Platform.runLater(() -> {
+            btnSubmitConvert.setDisable(false);
+            if (success) {
+                showSuccessMessage(labelSuccessConvert, "mp3", hideSuccessMessageTimer);
+                progressBarConvert.setProgress(1.0);
+            } else {
+                showErrorMessage(labelSuccessConvert, "So close, yet no success", hideSuccessMessageTimer);
+            }
+
+        }));
     }
 
     @FXML
     public void onResetPressed() {
-        comboBoxChoiceBitRate.setValue("128 kbps");
+        comboBoxChoiceBitRate.setValue("320 kbps");
         comboBoxChoiceChannels.setValue("2 Channels");
-        comboBoxChoiceSamplingRate.setValue("44100 Hz");
+        comboBoxChoiceSamplingRate.setValue("48000 Hz");
         bitRate = 128;
         channel = 2;
         samplingRate = 44100;
         progressBarConvert.setProgress(0);
+        labelSelectAudioName.setText("Selected file: none");
+        file = null;
+        outputPath = null;
     }
 
     public void onChoiceBitRate() {
@@ -181,5 +183,55 @@ public class ConverterMP3ViewController {
                 }
             }
         });
+    }
+
+    @FXML
+    private void handleDragDropped(DragEvent e) {
+        Dragboard db = e.getDragboard();
+        boolean success = false;
+
+        if(db.hasFiles()){
+            file = db.getFiles().getFirst();
+
+            success = true;
+        }
+
+        e.setDropCompleted(success);
+        labelSelectAudioName.setText(file.getName());
+        e.consume();
+    }
+
+    public void handleDragOver(DragEvent e) {
+        Dragboard db = e.getDragboard();
+
+        if (e.getGestureSource() != dropZone && db.hasFiles()) {
+            File file = db.getFiles().getFirst();
+
+            if (isSupportedMediaFile(file)) {
+                e.acceptTransferModes(TransferMode.COPY);
+            }
+        }
+
+        e.consume();
+    }
+
+    private boolean isSupportedMediaFile(File file) {
+        String name = file.getName().toLowerCase();
+
+        return name.endsWith(".mp3")
+                || name.endsWith(".wav")
+                || name.endsWith(".aac")
+                || name.endsWith(".mp4")
+                || name.endsWith(".mkv")
+                || name.endsWith(".avi")
+                || name.endsWith(".mov")
+                || name.endsWith(".m4a")
+                || name.endsWith(".flac")
+                || name.endsWith(".ogg")
+                || name.endsWith(".wma")
+                || name.endsWith(".flv")
+                || name.endsWith(".wmv")
+                || name.endsWith(".webm")
+                || name.endsWith(".3gp");
     }
 }

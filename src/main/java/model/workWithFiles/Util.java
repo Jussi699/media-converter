@@ -41,8 +41,18 @@ public class Util {
      * Displays the success message and starts the timer to hide it.
      */
     public static void showSuccessMessage(Label label, String format, PauseTransition timer) {
+        label.setStyle("-fx-text-fill: #32CD32;");
         label.setText("Successfully converted to " + format.toUpperCase());
-        label.setManaged(true);
+        label.setVisible(true);
+        timer.playFromStart();
+    }
+
+    /**
+     * Displays the error message and starts the timer to hide it.
+     */
+    public static void showErrorMessage(Label label, String message, PauseTransition timer) {
+        label.setStyle("-fx-text-fill: #FF0000;");
+        label.setText(message);
         label.setVisible(true);
         timer.playFromStart();
     }
@@ -55,7 +65,6 @@ public class Util {
             timer.stop();
         }
         label.setVisible(false);
-        label.setManaged(false);
         label.setText("");
     }
 
