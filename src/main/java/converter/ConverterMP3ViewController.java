@@ -31,6 +31,7 @@ public class ConverterMP3ViewController {
     private final PauseTransition hideSuccessMessageTimer =
             new PauseTransition(Duration.seconds(SUCCESS_MESSAGE_DURATION_SECONDS));
 
+    @FXML private Label textDragZone;
     @FXML private StackPane dropZone;
     @FXML private ProgressBar progressBarConvert;
     @FXML private Button btnSelectAudioVideoFile;
@@ -45,7 +46,7 @@ public class ConverterMP3ViewController {
     @FXML
     public void initialize() {
         outputPath = DEFAULT_PATH;
-        setupClearMessageTimer(labelSuccessConvert, hideSuccessMessageTimer);
+        setupClearMessageTimer(labelSuccessConvert, progressBarConvert, hideSuccessMessageTimer);
         labelSelectAudioName.setText("Selected file: none");
 
         labelSuccessConvert.setVisible(false);
@@ -73,6 +74,8 @@ public class ConverterMP3ViewController {
         bitRate = 320;
         channel = 2;
         samplingRate = 48000;
+
+
 
     }
 
@@ -117,11 +120,10 @@ public class ConverterMP3ViewController {
             btnSubmitConvert.setDisable(false);
             if (success) {
                 showSuccessMessage(labelSuccessConvert, "mp3", hideSuccessMessageTimer);
-                progressBarConvert.setProgress(1.0);
+                showProgressBar(progressBarConvert, hideSuccessMessageTimer);
             } else {
-                showErrorMessage(labelSuccessConvert, "So close, yet no success", hideSuccessMessageTimer);
+                showErrorMessage(labelSuccessConvert, progressBarConvert,"So close, yet no success", hideSuccessMessageTimer);
             }
-
         }));
     }
 
@@ -137,6 +139,8 @@ public class ConverterMP3ViewController {
         labelSelectAudioName.setText("Selected file: none");
         file = null;
         outputPath = null;
+        dropZone.getStyleClass().remove("drop-zone-filled");
+        textDragZone.setText("Drag files here");
     }
 
     public void onChoiceBitRate() {
@@ -194,6 +198,9 @@ public class ConverterMP3ViewController {
             file = db.getFiles().getFirst();
 
             success = true;
+            dropZone.getStyleClass().remove("drop-zone-filled");
+            dropZone.getStyleClass().add("drop-zone-filled");
+            textDragZone.setText("Select file: " + file.getName());
         }
 
         e.setDropCompleted(success);
@@ -234,4 +241,7 @@ public class ConverterMP3ViewController {
                 || name.endsWith(".webm")
                 || name.endsWith(".3gp");
     }
+
+
+
 }

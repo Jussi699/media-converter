@@ -129,3 +129,16 @@
     -fx-text-fill: white;
     -fx-background-radius: 8;
 }
+
+.drop-zone {
+    -fx-border-color: gray;
+    -fx-border-style: dashed;
+    -fx-background-color: #555555;
+}
+
+/* Стиль, который применится, когда файл принят */
+.drop-zone-filled {
+    -fx-border-color: #00FF00; /* Зеленая граница */
+    -fx-border-style: solid;   /* Сплошная линия */
+    -fx-background-color: #445544; /* Темно-зеленоватый фон */
+}

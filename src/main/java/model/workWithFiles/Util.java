@@ -4,6 +4,7 @@ import javafx.animation.PauseTransition;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Control;
 import javafx.scene.control.Label;
+import javafx.scene.control.ProgressBar;
 import javafx.stage.DirectoryChooser;
 import javafx.stage.Stage;
 
@@ -34,7 +35,14 @@ public class Util {
      * Sets up the timer to clear the success message after it finished.
      */
     public static void setupClearMessageTimer(Label label, PauseTransition timer) {
-        timer.setOnFinished(_ -> hideSuccessMessage(label, timer));
+        setupClearMessageTimer(label, null, timer);
+    }
+
+    /**
+     * Sets up the timer to clear the success message and progress bar after it finished.
+     */
+    public static void setupClearMessageTimer(Label label, ProgressBar bar, PauseTransition timer) {
+        timer.setOnFinished(_ -> hideSuccessMessage(label, bar, timer));
     }
 
     /**
@@ -47,25 +55,45 @@ public class Util {
         timer.playFromStart();
     }
 
+    public static void showProgressBar(ProgressBar bar, PauseTransition timer) {
+        bar.setProgress(1.0);
+        timer.playFromStart();
+    }
+
     /**
      * Displays the error message and starts the timer to hide it.
      */
     public static void showErrorMessage(Label label, String message, PauseTransition timer) {
-        label.setStyle("-fx-text-fill: #FF0000;");
+        label.setStyle("-fx-text-fill: RED;");
         label.setText(message);
         label.setVisible(true);
         timer.playFromStart();
+    }
+
+    public static void showErrorMessage(Label label, ProgressBar bar ,String message, PauseTransition timer) {
+        bar.setStyle("-fx-background-color: RED;");
+        showErrorMessage(label, message, timer);
     }
 
     /**
      * Immediately hides the success message and stops the timer.
      */
     public static void hideSuccessMessage(Label label, PauseTransition timer) {
+        hideSuccessMessage(label, null, timer);
+    }
+
+    /**
+     * Immediately hides the success message, resets progress bar and stops the timer.
+     */
+    public static void hideSuccessMessage(Label label, ProgressBar bar, PauseTransition timer) {
         if (timer != null) {
             timer.stop();
         }
         label.setVisible(false);
         label.setText("");
+        if (bar != null) {
+            bar.setProgress(0.0);
+        }
     }
 
     public static Stage getStage(Control control) {

@@ -60,19 +60,18 @@
     </VBox>
 
 
-    <StackPane fx:id="dropZone"
+    <StackPane fx:id="dropZone" styleClass="drop-zone"
                onDragOver="#handleDragOver"
                onDragDropped="#handleDragDropped"
                minHeight="280.0"
                prefHeight="400.0" 
                prefWidth="560.0"
-               VBox.vgrow="ALWAYS"
-               style="-fx-border-color: gray; -fx-border-style: dashed; -fx-background-color: #555555;">
+               VBox.vgrow="ALWAYS">
         <VBox.margin>
             <Insets top="5.0" bottom="10.0" />
         </VBox.margin>
         <children>
-            <Label text="Drag files here" textFill="WHITE" style="-fx-font-size: 16px;" />
+            <Label fx:id="textDragZone" text="Drag files here" textFill="WHITE" style="-fx-font-size: 16px;" />
         </children>
     </StackPane>
 
