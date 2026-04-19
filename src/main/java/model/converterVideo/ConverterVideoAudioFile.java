@@ -21,9 +21,8 @@ public class ConverterVideoAudioFile {
     private static final Encoder encoder = new Encoder();
     public static File nameFileAfter;
 
-    /**
-     * Основной метод для конвертации видео и аудио с раздельными битрейтами.
-     */
+    private static volatile File currentTarget;
+
     public static CompletableFuture<Boolean> convert(File file,
                                                      File pathForSave,
                                                      int videoBitrate, int audioBitrate,
@@ -39,20 +38,31 @@ public class ConverterVideoAudioFile {
             String fileName = file.getName();
             int dotIndex = fileName.lastIndexOf('.');
             String nameWithoutExtension = (dotIndex == -1) ? fileName : fileName.substring(0, dotIndex);
-            target = new File(pathForSave, nameWithoutExtension + "_" + UUID.randomUUID().toString().replace("-", "") + "." + output_format);
+            String extension = output_format;
+            if ("matroska".equalsIgnoreCase(output_format)) {
+                extension = "mkv";
+            }
+            target = new File(pathForSave, nameWithoutExtension + "_" + UUID.randomUUID().toString().replace("-", "") + "." + extension);
             nameFileAfter = target;
         } else {
             target = pathForSave;
         }
 
+        currentTarget = target;
+
         return CompletableFuture.supplyAsync(() -> {
             ErrorLogger.info("Starting async conversion...");
             try {
                 EncodingAttributes attrs = new EncodingAttributes();
-                attrs.setOutputFormat(output_format);
-
                 AudioAttributes audio = new AudioAttributes();
+                
+                String normalizedFormat = output_format;
+                if ("mkv".equalsIgnoreCase(output_format)) {
+                    normalizedFormat = "matroska";
+                }
+                attrs.setOutputFormat(normalizedFormat);
                 audio.setCodec(audioCodec);
+
                 if (audioBitrate > 0) {
                     audio.setBitRate(audioBitrate * 1000);
                 }
@@ -110,17 +120,16 @@ public class ConverterVideoAudioFile {
                 });
 
                 ErrorLogger.info("Conversion successful!");
+                currentTarget = null;
                 return true;
             } catch (Exception e) {
                 handleError(e, target);
+                currentTarget = null;
                 return false;
             }
         });
     }
 
-    /**
-     * Перегрузка для обратной совместимости (например, для MP3-конвертера).
-     */
     public static CompletableFuture<Boolean> convert(File file,
                                                      File pathForSave,
                                                      int bitRate, int channels, int samplingRate,
@@ -128,10 +137,46 @@ public class ConverterVideoAudioFile {
                                                      Consumer<Double> progressConsumer) {
         return convert(file, pathForSave, -1, bitRate, channels, samplingRate, -1, null, audioCodec, output_format, null, "audio", progressConsumer);
     }
+public static void cancelConversion() {
+    encoder.abortEncoding();
 
-    public static void cancelConversion() {
-        encoder.abortEncoding();
-    }
+    File fileToDelete = currentTarget;
+    if (fileToDelete == null) return;
+
+    new Thread(() -> {
+        ErrorLogger.info("Attempting to delete partial file: " + fileToDelete.getName());
+        int attempts = 0;
+        boolean deleted = false;
+
+        while (attempts < 10 && !deleted) {
+            try {
+                Thread.sleep(500 + (attempts * 200L));
+                if (!fileToDelete.exists()) {
+                    deleted = true;
+                    break;
+                }
+                if (fileToDelete.delete()) {
+                    ErrorLogger.info("Successfully deleted partial file after cancellation.");
+                    deleted = true;
+                } else {
+                    attempts++;
+                    ErrorLogger.warn("Delete attempt " + attempts + " failed. File might be locked.");
+                }
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                break;
+            }
+        }
+
+        if (!deleted && fileToDelete.exists()) {
+            ErrorLogger.error("Could not delete partial file after 10 attempts: " + fileToDelete.getAbsolutePath());
+        }
+
+        if (fileToDelete.equals(currentTarget)) {
+            currentTarget = null;
+        }
+    }).start();
+}
 
     public static MultimediaInfo getMetadata(File file) {
         try {
@@ -163,7 +208,6 @@ public class ConverterVideoAudioFile {
             }
         } else {
             ErrorLogger.info("Conversion failed: " + e.getMessage());
-            e.printStackTrace();
             Platform.runLater(() -> ErrorLogger.alertDialog(Alert.AlertType.WARNING, "ERROR", "Conversion Error", "FFmpeg Error: " + e.getMessage()));
             ErrorLogger.log(109, ErrorLogger.Level.ERROR, "Exception during conversion", e);
         }

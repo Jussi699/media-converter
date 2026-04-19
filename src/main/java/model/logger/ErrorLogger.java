@@ -30,6 +30,10 @@ public class ErrorLogger {
         logger.warn(message);
     }
 
+    public static void error(String message) {
+        logger.error(message);
+    }
+
     public static void alertDialog(Alert.AlertType type, String title, String headerText, String message) {
         Alert alert = new Alert(type);
         alert.setTitle(title);

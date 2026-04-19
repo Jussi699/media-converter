@@ -23,6 +23,7 @@ import java.io.IOException;
 import java.nio.file.Paths;
 
 import static model.converterImage.UsefulMethods.*;
+import static model.utility.Message.*;
 import static model.utility.Util.*;
 
 public class ConverterImageViewController {
@@ -36,18 +37,19 @@ public class ConverterImageViewController {
     private final PauseTransition hideSuccessMessageTimer =
             new PauseTransition(Duration.seconds(SUCCESS_MESSAGE_DURATION_SECONDS));
 
-    @FXML private Label labelSelectImageName;
-    @FXML private Slider imageScaleSlider;
-    @FXML private ImageView imageViewPhoto;
     @FXML private Button btnSelectPhotoFile;
-    @FXML private ToggleButton btnToPNG;
-    @FXML private ToggleButton btnToJPEG;
     @FXML private Button btnChoiceDirForSaveImage;
-    @FXML private ComboBox<String> comboBoxIcoSize;
     @FXML private Label labelSuccessConvert;
+    @FXML private Label labelSelectImageName;
+    @FXML private ToggleButton btnToWEBM;
+    @FXML private ToggleButton btnToJPEG;
+    @FXML private ToggleButton btnToPNG;
+    @FXML private Slider imageScaleSlider;
+    @FXML private ComboBox<String> comboBoxIcoSize;
     @FXML private ScrollPane scrollPanePhoto;
     @FXML private StackPane imageContainer;
-    @FXML private ToggleButton btnToWEBM;
+    @FXML private ImageView imageViewPhoto;
+
 
     @FXML
     public void initialize() {

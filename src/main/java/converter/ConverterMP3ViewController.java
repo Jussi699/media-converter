@@ -8,8 +8,6 @@ import javafx.scene.control.*;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.input.DragEvent;
-import javafx.scene.input.Dragboard;
-import javafx.scene.input.TransferMode;
 import javafx.scene.layout.StackPane;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
@@ -17,9 +15,14 @@ import javafx.util.Duration;
 import model.converterVideo.ConverterVideoAudioFile;
 import model.logger.ErrorLogger;
 import model.select.SelectFile;
+import model.utility.DragDropped;
 
 import java.io.File;
 import java.nio.file.Paths;
+import java.util.List;
+
+import static model.utility.Message.*;
+import static model.utility.Parsers.*;
 import static model.utility.Util.*;
 
 public class ConverterMP3ViewController {
@@ -39,12 +42,17 @@ public class ConverterMP3ViewController {
     @FXML private ProgressBar progressBarConvert;
     @FXML private Button btnSelectAudioVideoFile;
     @FXML private Button btnChoiceDirForSaveMP3;
-    @FXML private Label labelSelectAudioName;
     @FXML private Button btnSubmitConvert;
+    @FXML private Label labelSelectAudioName;
     @FXML private Label labelSuccessConvert;
     @FXML private ComboBox<String> comboBoxChoiceBitRate;
     @FXML private ComboBox<String> comboBoxChoiceChannels;
     @FXML private ComboBox<String> comboBoxChoiceSamplingRate;
+
+    private static final List<String> SUPPORTED_AUDIO_VIDEO_FORMATS = List.of(
+            ".mp3", ".wav", ".ogg", ".flac", ".m4a", ".aac", ".wma",
+            ".mp4", ".avi", ".mkv", ".mov", ".flv", ".wmv", ".webm", ".3gp"
+    );
 
     @FXML
     public void initialize() {
@@ -72,33 +80,51 @@ public class ConverterMP3ViewController {
                                                         "22050 Hz", "24000 Hz", "32000 Hz",
                                                         "44100 Hz", "48000 Hz");
 
+        resetToDefaults();
+    }
+
+    private void resetToDefaults() {
         comboBoxChoiceBitRate.setValue("320 kbps");
         comboBoxChoiceChannels.setValue("2 Channels");
         comboBoxChoiceSamplingRate.setValue("48000 Hz");
-
         bitRate = 320;
         channel = 2;
         samplingRate = 48000;
-
-
-
+        progressBarConvert.setProgress(0);
+        labelSelectAudioName.setText("Selected file: none");
+        file = null;
+        if (dropZone != null) dropZone.getStyleClass().remove("drop-zone-filled");
+        if (textDragZone != null) textDragZone.setText("Drag files here");
     }
 
     @FXML
     public void onSelectAudioVideoPressed() {
         SelectFile selectAudioVideoFile = new SelectFile();
         Stage stage = (Stage) btnSelectAudioVideoFile.getScene().getWindow();
-        file = selectAudioVideoFile.choiceFile(stage,
+        File selectedFile = selectAudioVideoFile.choiceFile(stage,
                 new FileChooser.ExtensionFilter("All Media Files",
                         "*.mp3", "*.wav", "*.ogg", "*.flac", "*.m4a", "*.aac", "*.wma",
                         "*.mp4", "*.avi", "*.mkv", "*.mov", "*.flv", "*.wmv"),
                     "Choice video/audio file"
                 );
 
-        if(file == null) return;
+        if(selectedFile != null) {
+            loadFile(selectedFile);
+        }
+    }
 
+    private void loadFile(File selectedFile) {
+        this.file = selectedFile;
         ErrorLogger.info("User select file (video/audio): " + file.getAbsolutePath());
         labelSelectAudioName.setText("Select video/audio: " + file.getName());
+        
+        if (textDragZone != null) {
+            textDragZone.setText("Selected: " + file.getName());
+        }
+        if (dropZone != null && !dropZone.getStyleClass().contains("drop-zone-filled")) {
+            dropZone.getStyleClass().add("drop-zone-filled");
+        }
+        hideSuccessMessage(labelSuccessConvert, hideSuccessMessageTimer);
     }
 
     @FXML
@@ -154,18 +180,9 @@ public class ConverterMP3ViewController {
 
     @FXML
     public void onResetPressed() {
-        comboBoxChoiceBitRate.setValue("320 kbps");
-        comboBoxChoiceChannels.setValue("2 Channels");
-        comboBoxChoiceSamplingRate.setValue("48000 Hz");
-        bitRate = 128;
-        channel = 2;
-        samplingRate = 44100;
-        progressBarConvert.setProgress(0);
-        labelSelectAudioName.setText("Selected file: none");
-        file = null;
+        resetToDefaults();
         outputPath = DEFAULT_PATH;
-        dropZone.getStyleClass().remove("drop-zone-filled");
-        textDragZone.setText("Drag files here");
+        hideSuccessMessage(labelSuccessConvert, hideSuccessMessageTimer);
     }
 
     public void onChoiceBitRate() {
@@ -216,58 +233,18 @@ public class ConverterMP3ViewController {
 
     @FXML
     private void handleDragDropped(DragEvent e) {
-        Dragboard db = e.getDragboard();
-        boolean success = false;
-
-        if(db.hasFiles()){
-            file = db.getFiles().getFirst();
-
-            success = true;
-            dropZone.getStyleClass().remove("drop-zone-filled");
-            dropZone.getStyleClass().add("drop-zone-filled");
-            textDragZone.setText("Select file: " + file.getName());
+        File droppedFile = DragDropped.handleDragDropped(e, dropZone, textDragZone);
+        if (droppedFile != null) {
+            loadFile(droppedFile);
         }
-
-        e.setDropCompleted(success);
-        labelSelectAudioName.setText(file.getName());
-        e.consume();
     }
 
+    @FXML
     public void handleDragOver(DragEvent e) {
-        Dragboard db = e.getDragboard();
-
-        if (e.getGestureSource() != dropZone && db.hasFiles()) {
-            File file = db.getFiles().getFirst();
-
-            if (isSupportedMediaFile(file)) {
-                e.acceptTransferModes(TransferMode.COPY);
-            }
-        }
-
-        e.consume();
+        DragDropped.handleDragOver(e, SUPPORTED_AUDIO_VIDEO_FORMATS, dropZone);
     }
 
-    private boolean isSupportedMediaFile(File file) {
-        String name = file.getName().toLowerCase();
-
-        return name.endsWith(".mp3")
-                || name.endsWith(".wav")
-                || name.endsWith(".aac")
-                || name.endsWith(".mp4")
-                || name.endsWith(".mkv")
-                || name.endsWith(".avi")
-                || name.endsWith(".mov")
-                || name.endsWith(".m4a")
-                || name.endsWith(".flac")
-                || name.endsWith(".ogg")
-                || name.endsWith(".wma")
-                || name.endsWith(".flv")
-                || name.endsWith(".wmv")
-                || name.endsWith(".webm")
-                || name.endsWith(".3gp");
-    }
-
-
+    @FXML
     public void onCancelConversation() {
         ConverterVideoAudioFile.cancelConversion();
     }

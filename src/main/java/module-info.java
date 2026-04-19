@@ -8,7 +8,6 @@ module converter {
     requires javafx.swing;
     requires com.luciad.imageio.webp;
     requires jave.core;
-    requires org.bytedeco.javacv;
 
     opens converter to javafx.fxml;
     exports model.converterImage;

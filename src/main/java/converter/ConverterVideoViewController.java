@@ -4,7 +4,8 @@ import javafx.animation.PauseTransition;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
-import javafx.scene.layout.VBox;
+import javafx.scene.input.DragEvent;
+import javafx.scene.layout.StackPane;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 import javafx.util.Duration;
@@ -12,13 +13,17 @@ import javafx.util.StringConverter;
 import model.converterVideo.ConverterVideoAudioFile;
 import model.logger.ErrorLogger;
 import model.select.SelectFile;
+import model.utility.DragDropped;
 import model.utility.Item;
 
 import java.io.File;
 import java.nio.file.Paths;
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;
 
+import static model.utility.Message.*;
+import static model.utility.Parsers.*;
 import static model.utility.Util.*;
 
 public class ConverterVideoViewController {
@@ -37,31 +42,35 @@ public class ConverterVideoViewController {
     private final PauseTransition hideSuccessMessageTimer =
             new PauseTransition(Duration.seconds(SUCCESS_MESSAGE_DURATION_SECONDS));
 
-    @FXML private ToggleButton btnToWEBM;
-    @FXML private VBox converterVideoPage;
-    @FXML private Label labelConvertVideo;
+    @FXML private Label labelSelectVideoName;
+    @FXML private Label labelSuccessConvert;
+    @FXML private Label textDragZone;
+    @FXML private Button btnSubmitConvert;
     @FXML private Button btnSelectVideoFile;
     @FXML private Button btnChoiceDirForSaveVideo;
-    @FXML private ProgressBar progressBarConvert;
-    @FXML private Button btnSubmitConvert;
-    @FXML private Button btnReset;
     @FXML private ToggleButton btnToMP4;
     @FXML private ToggleButton btnToAVI;
     @FXML private ToggleButton btnToMKV;
-    @FXML private Label labelSelectVideoName;
-    @FXML private Label labelSuccessConvert;
+    @FXML private ToggleButton btnToWEBM;
     @FXML private ComboBox<Item> comboBoxChoiceBitRate;
     @FXML private ComboBox<Item> comboBoxChoiceChannels;
     @FXML private ComboBox<Item> comboBoxChoiceSamplingRate;
     @FXML private ComboBox<Item> comboBoxChoiceFPS;
     @FXML private ComboBox<String> comboBoxChoiceResolution;
     @FXML private CheckBox checkBoxGPU;
+    @FXML private ProgressBar progressBarConvert;
+    @FXML private StackPane dropZone;
+
+    private static final List<String> SUPPORTED_VIDEO_FORMATS = List.of(
+            ".mp4", ".avi", ".mkv", ".mov", ".webm", ".flv", ".wmv", ".3gp"
+    );
 
     @FXML
     public void initialize() {
         outputPath = Paths.get(System.getProperty("user.home"), "Desktop").toFile();
         setupClearMessageTimer(labelSuccessConvert, hideSuccessMessageTimer);
         labelSelectVideoName.setText(DEFAULT_FILE_TEXT);
+        labelSuccessConvert.setVisible(false);
 
         setupComboBox(comboBoxChoiceBitRate, Item::getTitle);
         setupComboBox(comboBoxChoiceChannels, Item::getTitle);
@@ -124,22 +133,37 @@ public class ConverterVideoViewController {
         comboBoxChoiceSamplingRate.setValue(new Item(44100, "44100 Hz"));
         comboBoxChoiceFPS.setValue(new Item(30, "30 fps"));
         comboBoxChoiceResolution.setValue("1920x1080");
+
+        if (dropZone != null) dropZone.getStyleClass().remove("drop-zone-filled");
+        if (textDragZone != null) textDragZone.setText("Drag files here");
     }
 
     @FXML
     public void onSelectVideoPressed() {
        SelectFile selectFile = new SelectFile();
        Stage stage = (Stage) btnSelectVideoFile.getScene().getWindow();
-        file = selectFile.choiceFile(stage,
+        File selectedFile = selectFile.choiceFile(stage,
                new FileChooser.ExtensionFilter("Video", "*.mp4", "*.avi", "*.mkv", "*.mov", "*.webm") ,"Select video");
 
-        if (file != null) {
-            labelSelectVideoName.setText("Selected file: " + file.getName() + " (Loading info...)");
-            
-            CompletableFuture.supplyAsync(() -> getMetadata(file))
-                .thenAccept(info -> Platform.runLater(() -> updateLabelFromMetadata(info)));
-            
-            hideSuccessMessage(labelSuccessConvert, hideSuccessMessageTimer);
+        if (selectedFile != null) {
+            loadFile(selectedFile);
+        }
+    }
+
+    private void loadFile(File selectedFile) {
+        this.file = selectedFile;
+        labelSelectVideoName.setText("Selected file: " + file.getName() + " (Loading info...)");
+        
+        CompletableFuture.supplyAsync(() -> getMetadata(file))
+            .thenAccept(info -> Platform.runLater(() -> updateLabelFromMetadata(info)));
+        
+        hideSuccessMessage(labelSuccessConvert, hideSuccessMessageTimer);
+        
+        if (textDragZone != null) {
+            textDragZone.setText("Selected: " + file.getName());
+        }
+        if (dropZone != null && !dropZone.getStyleClass().contains("drop-zone-filled")) {
+            dropZone.getStyleClass().add("drop-zone-filled");
         }
     }
 
@@ -239,7 +263,9 @@ public class ConverterVideoViewController {
         if (finalAudioBitrate <= 0) finalAudioBitrate = 192;
 
         int finalChannels = (channel == -1) ? parseChannels(sourceInfo) : channel;
+
         int finalSamplingRate = (samplingRate == -1) ? parseSamplingRate(sourceInfo) : samplingRate;
+
         int finalFps = (fps == -1) ? parseFps(sourceInfo) : fps;
         String finalResolution = ("Match source".equalsIgnoreCase(resolution)) ? parseResolution(sourceInfo) : resolution;
 
@@ -251,7 +277,7 @@ public class ConverterVideoViewController {
         btnSubmitConvert.setDisable(true);
 
         String videoCodec;
-        String audioCodec = "aac";
+        String audioCodec;
         String typeConvert = "video";
         String ffmpegFormat = targetFormat;
 
@@ -259,7 +285,7 @@ public class ConverterVideoViewController {
 
         switch (targetFormat) {
             case "mp4", "m4v" -> { videoCodec = useGPU ? "h264_nvenc" : "libx264"; audioCodec = "aac"; ffmpegFormat = "mp4"; }
-            case "mkv", "matroska" -> { videoCodec = useGPU ? "h264_nvenc" : "libx264"; audioCodec = "aac"; ffmpegFormat = "matroska"; }
+            case "mkv", "matroska" -> { videoCodec = useGPU ? "h264_nvenc" : "libx264"; audioCodec = "aac"; ffmpegFormat = "mkv"; }
             case "avi" -> { videoCodec = useGPU ? "h264_nvenc" : "mpeg4"; audioCodec = "libmp3lame"; ffmpegFormat = "avi"; }
             case "webm" -> { videoCodec = "libvpx"; audioCodec = "libvorbis"; ffmpegFormat = "webm"; }
             default -> { videoCodec = useGPU ? "h264_nvenc" : "libx264"; audioCodec = "aac"; }
@@ -301,4 +327,23 @@ public class ConverterVideoViewController {
             public T fromString(String string) { return null; }
         });
     }
-}
+
+    @FXML
+    public void onCancelConversation() {
+        ConverterVideoAudioFile.cancelConversion();
+    }
+
+    @FXML
+    public void handleDragOver(DragEvent e) {
+        DragDropped.handleDragOver(e, SUPPORTED_VIDEO_FORMATS, dropZone);
+    }
+
+    @FXML
+    public void handleDragDropped(DragEvent e) {
+        File droppedFile = DragDropped.handleDragDropped(e, dropZone, textDragZone);
+        if (droppedFile != null) {
+            loadFile(droppedFile);
+         }
+        }
+    }
+
