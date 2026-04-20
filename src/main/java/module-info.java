@@ -13,4 +13,5 @@ module converter {
     exports model.converterImage;
     exports converter;
     exports model.utility;
+    exports viewHelp;
 }

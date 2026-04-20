@@ -1,4 +1,4 @@
-package model.utility;
+package viewHelp;
 
 import javafx.animation.PauseTransition;
 import javafx.scene.control.Label;
@@ -21,7 +21,7 @@ public class Message {
     }
 
     public static void showErrorMessage(Label label, ProgressBar bar, String message, PauseTransition timer) {
-        bar.setStyle("-fx-border-color: RED;");
+        bar.setStyle("-fx-border-color: RED; -fx-border-radius: 10px");
         showErrorMessage(label, message, timer);
     }
 
@@ -40,7 +40,7 @@ public class Message {
     }
 
     public static void showErrorMessage(Label label, String message, PauseTransition timer) {
-        label.setStyle("-fx-text-fill: RED;");
+        label.setStyle("-fx-text-fill: RED; -fx-border-radius: 10px");
         label.setText(message);
         label.setVisible(true);
         timer.playFromStart();

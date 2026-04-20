@@ -14,7 +14,7 @@ public class ControllerView {
     @FXML private Button navHomeButton;
     @FXML private Button navConverterImageButton;
     @FXML private Button navConverterVideoButton;
-    @FXML private Button navConverterMP3Button;
+    @FXML private Button navConverterAudioButton;
 
     @FXML
     public void initialize() {
@@ -41,8 +41,8 @@ public class ControllerView {
     }
 
     @FXML
-    public void showConverterMP3Page() {
-        setActivePage(converterMP3Page, navConverterMP3Button);
+    public void showConverterAudioPage() {
+        setActivePage(converterMP3Page, navConverterAudioButton);
     }
 
     private void setActivePage(VBox pageToShow, Button activeButton) {
@@ -58,7 +58,7 @@ public class ControllerView {
         navHomeButton.setStyle(getNavButtonStyle(activeButton == navHomeButton));
         navConverterImageButton.setStyle(getNavButtonStyle(activeButton == navConverterImageButton));
         navConverterVideoButton.setStyle(getNavButtonStyle(activeButton == navConverterVideoButton));
-        navConverterMP3Button.setStyle(getNavButtonStyle(activeButton == navConverterMP3Button));
+        navConverterAudioButton.setStyle(getNavButtonStyle(activeButton == navConverterAudioButton));
     }
 
     private String getNavButtonStyle(boolean active) {

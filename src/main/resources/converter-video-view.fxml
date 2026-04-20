@@ -57,6 +57,11 @@
                       onAction="#onFormatWEBMPressed"
                       prefWidth="100.0"
                       text="to WEBM"/>
+        <ToggleButton fx:id="btnToMOV"
+                      mnemonicParsing="false"
+                      onAction="#onFormatMOVPressed"
+                      prefWidth="100.0"
+                      text="to MOV"/>
     </HBox>
 
     <VBox alignment="CENTER" spacing="10.0">
@@ -130,9 +135,7 @@
         <VBox.margin>
             <Insets left="20.0" right="20.0" />
         </VBox.margin>
-        <children>
             <Label fx:id="textDragZone" text="Drag files here" textFill="WHITE" style="-fx-font-size: 18px;" />
-        </children>
     </StackPane>
 
     <VBox alignment="CENTER" spacing="10.0">

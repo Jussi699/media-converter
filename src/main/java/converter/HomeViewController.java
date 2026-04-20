@@ -32,7 +32,7 @@ public class HomeViewController {
     @FXML
     private void onOpenMP3ConverterPressed() {
         if (mainController != null) {
-            mainController.showConverterMP3Page();
+            mainController.showConverterAudioPage();
         }
     }
 }

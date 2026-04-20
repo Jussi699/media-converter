@@ -24,7 +24,9 @@ import java.io.IOException;
 import java.nio.file.Paths;
 
 import static model.converterImage.UsefulMethods.*;
-import static model.utility.Message.*;
+
+import viewHelp.Alerts;
+import static viewHelp.Message.*;
 import static model.utility.Util.*;
 
 public class ConverterImageViewController {
@@ -131,7 +133,7 @@ public class ConverterImageViewController {
                         updateImageContainerSize(imageScaleSlider.getValue());
                         Platform.runLater(this::adjustScrollBarToCenter);
                     } catch (NumberFormatException e) {
-                        ErrorLogger.alertDialog(Alert.AlertType.WARNING, "Error", "Format", "Invalid size value!");
+                        Alerts.alertDialog(Alert.AlertType.WARNING, "Error", "Format", "Invalid size value!");
                     }
                 }
             }
@@ -212,7 +214,7 @@ public class ConverterImageViewController {
             BufferedImage bi = readPreviewImage(image);
             if (bi == null) {
                 ErrorLogger.warn("Failed to read preview for file: " + image.getName());
-                ErrorLogger.alertDialog(Alert.AlertType.WARNING, "Error", "Format", "Unsupported image format!");
+                Alerts.alertDialog(Alert.AlertType.WARNING, "Error", "Format", "Unsupported image format!");
                 return;
             }
 
@@ -224,7 +226,7 @@ public class ConverterImageViewController {
             ErrorLogger.info("Preview loaded successfully for: " + image.getName());
         } catch (IOException e) {
             ErrorLogger.log(107, ErrorLogger.Level.ERROR, "IO | File error while loading preview", e);
-            ErrorLogger.alertDialog(Alert.AlertType.WARNING, "Error", "IO", "File error!");
+            Alerts.alertDialog(Alert.AlertType.WARNING, "Error", "IO", "File error!");
         }
     }
 
@@ -259,12 +261,12 @@ public class ConverterImageViewController {
     @FXML
     public void SubmitConvertAndDownload() {
         if (image == null || outputPath == null) {
-            ErrorLogger.alertDialog(Alert.AlertType.WARNING, "Warning", "File missing!", "Select image first.");
+            Alerts.alertDialog(Alert.AlertType.WARNING, "Warning", "File missing!", "Select image first.");
             return;
         }
 
         if (typeImage == null) {
-            ErrorLogger.alertDialog(Alert.AlertType.WARNING, "Warning", "File missing!", "Select photo format (PNG/JPEG/ICO/WEBP).");
+            Alerts.alertDialog(Alert.AlertType.WARNING, "Warning", "File missing!", "Select photo format (PNG/JPEG/ICO/WEBP).");
             return;
         }
 
@@ -280,7 +282,7 @@ public class ConverterImageViewController {
             String targetFormat = usefulMethods.normalizeFormat(typeImage);
 
             if (inputExtension.equals(targetFormat)) {
-                ErrorLogger.alertDialog(Alert.AlertType.WARNING, "Warning", "Format",
+                Alerts.alertDialog(Alert.AlertType.WARNING, "Warning", "Format",
                         "Source and target formats are the same (" + targetFormat + ").");
                 return;
             }
@@ -288,7 +290,7 @@ public class ConverterImageViewController {
             File convertedFile;
             if ("ico".equals(targetFormat)) {
                 if (sizeIcoImage <= 0) {
-                    ErrorLogger.alertDialog(Alert.AlertType.WARNING, "Warning", "ICO Size", "Select ICO size.");
+                    Alerts.alertDialog(Alert.AlertType.WARNING, "Warning", "ICO Size", "Select ICO size.");
                     return;
                 }
                 convertedFile = ConverterImage.convertToIco(image, outputPath, sizeIcoImage);
@@ -304,22 +306,22 @@ public class ConverterImageViewController {
             } else {
                 ErrorLogger.warn("Conversion finished but file not found or empty: " + convertedFile.getName());
                 showErrorMessage(labelSuccessConvert, "Conversion Failed: File missing", hideSuccessMessageTimer);
-                ErrorLogger.alertDialog(Alert.AlertType.WARNING, "Warning", "Missing File",
+                Alerts.alertDialog(Alert.AlertType.WARNING, "Warning", "Missing File",
                         "Conversion finished, but saved file was not found.");
             }
 
         } catch (IllegalArgumentException e) {
             ErrorLogger.log(1002, ErrorLogger.Level.WARN, "Invalid parameters for conversion", e);
             showErrorMessage(labelSuccessConvert, "Error: Invalid parameters", hideSuccessMessageTimer);
-            ErrorLogger.alertDialog(Alert.AlertType.WARNING, "Warning", "Invalid Parameters", e.getMessage());
+            Alerts.alertDialog(Alert.AlertType.WARNING, "Warning", "Invalid Parameters", e.getMessage());
         } catch (IOException e) {
             ErrorLogger.log(105, ErrorLogger.Level.ERROR, "IO Error during conversion", e);
             showErrorMessage(labelSuccessConvert, "Error: " + e.getMessage(), hideSuccessMessageTimer);
-            ErrorLogger.alertDialog(Alert.AlertType.ERROR, "Error", "Conversion Failed", e.getMessage());
+            Alerts.alertDialog(Alert.AlertType.ERROR, "Error", "Conversion Failed", e.getMessage());
         } catch (Exception e) {
             ErrorLogger.log(1001, ErrorLogger.Level.ERROR, "Unexpected error during conversion", e);
             showErrorMessage(labelSuccessConvert, "System Error: " + e.getMessage(), hideSuccessMessageTimer);
-            ErrorLogger.alertDialog(Alert.AlertType.ERROR, "Error", "System Error", "Something went wrong: " + e.getMessage());
+            Alerts.alertDialog(Alert.AlertType.ERROR, "Error", "System Error", "Something went wrong: " + e.getMessage());
         }
     }
 

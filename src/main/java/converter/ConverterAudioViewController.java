@@ -16,19 +16,22 @@ import model.converterVideo.ConverterVideoAudioFile;
 import model.logger.ErrorLogger;
 import model.select.SelectFile;
 import model.utility.DragDropped;
+import viewHelp.Alerts;
 
 import java.io.File;
 import java.nio.file.Paths;
 import java.util.List;
 
-import static model.utility.Message.*;
+import static viewHelp.Message.*;
 import static model.utility.Parsers.*;
 import static model.utility.Util.*;
 
-public class ConverterMP3ViewController {
+public class ConverterAudioViewController {
     private static final int SUCCESS_MESSAGE_DURATION_SECONDS = 5;
 
     private final File DEFAULT_PATH = Paths.get(System.getProperty("user.home"), "Desktop").toFile();
+
+    private String targetFormat;
     private int bitRate;
     private int channel;
     private int samplingRate;
@@ -37,17 +40,24 @@ public class ConverterMP3ViewController {
     private final PauseTransition hideSuccessMessageTimer =
             new PauseTransition(Duration.seconds(SUCCESS_MESSAGE_DURATION_SECONDS));
 
-    @FXML private Label textDragZone;
     @FXML private StackPane dropZone;
     @FXML private ProgressBar progressBarConvert;
     @FXML private Button btnSelectAudioVideoFile;
     @FXML private Button btnChoiceDirForSaveMP3;
     @FXML private Button btnSubmitConvert;
-    @FXML private Label labelSelectAudioName;
+    @FXML private Label textDragZone;
     @FXML private Label labelSuccessConvert;
     @FXML private ComboBox<String> comboBoxChoiceBitRate;
     @FXML private ComboBox<String> comboBoxChoiceChannels;
     @FXML private ComboBox<String> comboBoxChoiceSamplingRate;
+    @FXML private ToggleButton btnToMP3;
+    @FXML private ToggleButton btnToAAC;
+    @FXML private ToggleButton btnToOggVorbis;
+    @FXML private ToggleButton btnToOPUS;
+    @FXML private ToggleButton btnToFLAC;
+    @FXML private ToggleButton btnToALAC;
+    @FXML private ToggleButton btnToWAV;
+    @FXML private ToggleButton btnToAIFF;
 
     private static final List<String> SUPPORTED_AUDIO_VIDEO_FORMATS = List.of(
             ".mp3", ".wav", ".ogg", ".flac", ".m4a", ".aac", ".wma",
@@ -61,7 +71,6 @@ public class ConverterMP3ViewController {
 
         outputPath = DEFAULT_PATH;
         setupClearMessageTimer(labelSuccessConvert, progressBarConvert, hideSuccessMessageTimer);
-        labelSelectAudioName.setText("Selected file: none");
 
         labelSuccessConvert.setVisible(false);
         labelSuccessConvert.setManaged(true);
@@ -91,7 +100,6 @@ public class ConverterMP3ViewController {
         channel = 2;
         samplingRate = 48000;
         progressBarConvert.setProgress(0);
-        labelSelectAudioName.setText("Selected file: none");
         file = null;
         if (dropZone != null) dropZone.getStyleClass().remove("drop-zone-filled");
         if (textDragZone != null) textDragZone.setText("Drag files here");
@@ -116,8 +124,7 @@ public class ConverterMP3ViewController {
     private void loadFile(File selectedFile) {
         this.file = selectedFile;
         ErrorLogger.info("User select file (video/audio): " + file.getAbsolutePath());
-        labelSelectAudioName.setText("Select video/audio: " + file.getName());
-        
+
         if (textDragZone != null) {
             textDragZone.setText("Selected: " + file.getName());
         }
@@ -139,18 +146,18 @@ public class ConverterMP3ViewController {
     @FXML
     public void onStartConversionPressed() {
         if(outputPath == null){
-            ErrorLogger.alertDialog(Alert.AlertType.WARNING, "WARN", "Output path missing!", "Select output directory!");
+            Alerts.alertDialog(Alert.AlertType.WARNING, "WARN", "Output path missing!", "Select output directory!");
             return;
         }
 
         if (file == null) {
-            ErrorLogger.alertDialog(Alert.AlertType.WARNING, "WARN", "File missing!", "Select audio or video file!");
+            Alerts.alertDialog(Alert.AlertType.WARNING, "WARN", "File missing!", "Select audio or video file!");
             return;
         }
 
         int originalChannels = parseChannels(getMetadata(file));
         if (originalChannels == 1 && channel == 2) {
-            boolean proceed = ErrorLogger.confirmationDialog(
+            boolean proceed = Alerts.confirmationDialog(
                     "Mono to Stereo Confirmation",
                     "The source file is mono (1 channel).",
                     "Do you want to convert it to stereo (2 channels) anyway?"
@@ -160,13 +167,28 @@ public class ConverterMP3ViewController {
 
         progressBarConvert.setProgress(0);
         btnSubmitConvert.setDisable(true);
+
+        String audioCodec;
+        String ffmpegFormat;
+
+
+        switch (targetFormat.toLowerCase()) {
+            case "aac" -> {audioCodec = "aac";ffmpegFormat = "adts";}
+            case "ogg" -> {audioCodec = "libvorbis";ffmpegFormat = "ogg";}
+            case "opus" -> {audioCodec = "libopus";ffmpegFormat = "opus";}
+            case "flac" -> {audioCodec = "flac";ffmpegFormat = "flac";}
+            case "alac", "m4a" -> {audioCodec = "alac";ffmpegFormat = "ipod";}
+            case "wav" -> {audioCodec = "pcm_s16le";ffmpegFormat = "wav";}
+            case "aiff" -> {audioCodec = "pcm_s16be";ffmpegFormat = "aiff";}
+            default -> {audioCodec = "libmp3lame";ffmpegFormat = "mp3";}
+        }
+
         ConverterVideoAudioFile.convert(file, outputPath, bitRate, channel, samplingRate,
-                "libmp3lame", "mp3", progress -> {
-            Platform.runLater(() -> progressBarConvert.setProgress(progress));
-        }).thenAccept(success -> Platform.runLater(() -> {
+                audioCodec, ffmpegFormat, progress ->
+                        Platform.runLater(() -> progressBarConvert.setProgress(progress))).thenAccept(success -> Platform.runLater(() -> {
             btnSubmitConvert.setDisable(false);
             if (success) {
-                showSuccessMessage(labelSuccessConvert, "mp3", hideSuccessMessageTimer);
+                showSuccessMessage(labelSuccessConvert, targetFormat, hideSuccessMessageTimer);
                 showProgressBar(progressBarConvert, hideSuccessMessageTimer);
             } else {
                 if (progressBarConvert.getProgress() > 0 && progressBarConvert.getProgress() < 1.0) {
@@ -182,6 +204,52 @@ public class ConverterMP3ViewController {
     public void onResetPressed() {
         resetToDefaults();
         outputPath = DEFAULT_PATH;
+        hideSuccessMessage(labelSuccessConvert, hideSuccessMessageTimer);
+    }
+
+    public void onFormatMp3Pressed() {
+        selectFormat("mp3", btnToMP3);
+    }
+
+    public void onFormatAACPressed() {
+        selectFormat("aac", btnToAAC);
+        System.out.println("Тут может быть два формата");
+    }
+
+    public void onFormatOggPressed() {
+        selectFormat("ogg", btnToOggVorbis);
+    }
+
+    public void onFormatOpusPressed() {
+        selectFormat("opus", btnToOPUS);
+    }
+
+    public void onFormatFlacPressed() {
+        selectFormat("flac", btnToFLAC);
+    }
+
+    public void onFormatAlacPressed() {
+        selectFormat("m4a", btnToALAC);
+    }
+
+    public void onFormatWAvPressed() {
+        selectFormat("wav", btnToWAV);
+    }
+
+    public void onFormatAiffPressed() {
+        selectFormat("aiff", btnToAIFF);
+    }
+
+    private void selectFormat(String format, ToggleButton selectedBtn) {
+        targetFormat = format;
+        btnToMP3.setSelected(selectedBtn == btnToMP3);
+        btnToAAC.setSelected(selectedBtn == btnToAAC);
+        btnToOggVorbis.setSelected(selectedBtn == btnToOggVorbis);
+        btnToOPUS.setSelected(selectedBtn == btnToOPUS);
+        btnToFLAC.setSelected(selectedBtn == btnToFLAC);
+        btnToALAC.setSelected(selectedBtn == btnToALAC);
+        btnToWAV.setSelected(selectedBtn == btnToWAV);
+        btnToAIFF.setSelected(selectedBtn == btnToAIFF);
         hideSuccessMessage(labelSuccessConvert, hideSuccessMessageTimer);
     }
 

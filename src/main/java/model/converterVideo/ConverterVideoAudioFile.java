@@ -3,6 +3,7 @@ package model.converterVideo;
 import javafx.application.Platform;
 import javafx.scene.control.Alert;
 import model.logger.ErrorLogger;
+import viewHelp.Alerts;
 import ws.schild.jave.Encoder;
 import ws.schild.jave.MultimediaObject;
 import ws.schild.jave.encode.AudioAttributes;
@@ -41,6 +42,10 @@ public class ConverterVideoAudioFile {
             String extension = output_format;
             if ("matroska".equalsIgnoreCase(output_format)) {
                 extension = "mkv";
+            } else if ("ipod".equalsIgnoreCase(output_format)) {
+                extension = "m4a";
+            } else if ("adts".equalsIgnoreCase(output_format)) {
+                extension = "aac";
             }
             target = new File(pathForSave, nameWithoutExtension + "_" + UUID.randomUUID().toString().replace("-", "") + "." + extension);
             nameFileAfter = target;
@@ -59,11 +64,13 @@ public class ConverterVideoAudioFile {
                 String normalizedFormat = output_format;
                 if ("mkv".equalsIgnoreCase(output_format)) {
                     normalizedFormat = "matroska";
+                } else if ("m4a".equalsIgnoreCase(output_format)) {
+                    normalizedFormat = "ipod";
                 }
                 attrs.setOutputFormat(normalizedFormat);
                 audio.setCodec(audioCodec);
 
-                if (audioBitrate > 0) {
+                if (audioBitrate > 0 && !isLossless(audioCodec)) {
                     audio.setBitRate(audioBitrate * 1000);
                 }
                 audio.setChannels(channels);
@@ -178,23 +185,19 @@ public static void cancelConversion() {
     }).start();
 }
 
-    public static MultimediaInfo getMetadata(File file) {
-        try {
-            MultimediaObject obj = new MultimediaObject(file);
-            return obj.getInfo();
-        } catch (Exception e) {
-            ErrorLogger.log(114, ErrorLogger.Level.ERROR, "Exception while getting multimedia info", e);
-            return null;
-        }
-    }
-
     private static boolean checkingFileStatic(File file) {
         if (file == null || !file.exists()) {
-            Platform.runLater(() -> ErrorLogger.alertDialog(Alert.AlertType.WARNING, "WARN",
+            Platform.runLater(() -> Alerts.alertDialog(Alert.AlertType.WARNING, "WARN",
                     "File missing!", "The selected file was not found or is empty."));
             return false;
         }
         return true;
+    }
+
+    private static boolean isLossless(String codec) {
+        if (codec == null) return false;
+        String c = codec.toLowerCase();
+        return c.contains("flac") || c.contains("alac") || c.contains("pcm");
     }
 
     private static void handleError(Exception e, File target) {
@@ -208,7 +211,7 @@ public static void cancelConversion() {
             }
         } else {
             ErrorLogger.info("Conversion failed: " + e.getMessage());
-            Platform.runLater(() -> ErrorLogger.alertDialog(Alert.AlertType.WARNING, "ERROR", "Conversion Error", "FFmpeg Error: " + e.getMessage()));
+            Platform.runLater(() -> Alerts.alertDialog(Alert.AlertType.WARNING, "ERROR", "Conversion Error", "FFmpeg Error: " + e.getMessage()));
             ErrorLogger.log(109, ErrorLogger.Level.ERROR, "Exception during conversion", e);
         }
     }
