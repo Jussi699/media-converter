@@ -69,4 +69,4 @@ A lightweight, powerful cross-platform media conversion tool built with Java and
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
 ---
-Developed by [Jussi669](https://github.com/Jussi669)
+Developed by [Jussi669](https://github.com/Jussi699)
