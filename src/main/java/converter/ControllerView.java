@@ -10,11 +10,13 @@ public class ControllerView {
     @FXML private VBox homeView;
     @FXML private VBox converterImagePage;
     @FXML private VBox converterVideoPage;
+    @FXML private VBox compressorImagePage;
     @FXML private HomeViewController homeViewController;
     @FXML private Button navHomeButton;
     @FXML private Button navConverterImageButton;
     @FXML private Button navConverterVideoButton;
     @FXML private Button navConverterAudioButton;
+    @FXML private Button navCompressorImage;
 
     @FXML
     public void initialize() {
@@ -45,20 +47,31 @@ public class ControllerView {
         setActivePage(converterMP3Page, navConverterAudioButton);
     }
 
+    public void showCompressorImagePage() {
+        setActivePage(compressorImagePage, navCompressorImage);
+    }
+
     private void setActivePage(VBox pageToShow, Button activeButton) {
         homeView.setVisible(pageToShow == homeView);
         homeView.setManaged(pageToShow == homeView);
+
         converterImagePage.setVisible(pageToShow == converterImagePage);
         converterImagePage.setManaged(pageToShow == converterImagePage);
+
         converterVideoPage.setVisible(pageToShow == converterVideoPage);
         converterVideoPage.setManaged(pageToShow == converterVideoPage);
+
         converterMP3Page.setVisible(pageToShow == converterMP3Page);
         converterMP3Page.setManaged(pageToShow == converterMP3Page);
+
+        compressorImagePage.setVisible(pageToShow == compressorImagePage);
+        compressorImagePage.setManaged(pageToShow == compressorImagePage);
 
         navHomeButton.setStyle(getNavButtonStyle(activeButton == navHomeButton));
         navConverterImageButton.setStyle(getNavButtonStyle(activeButton == navConverterImageButton));
         navConverterVideoButton.setStyle(getNavButtonStyle(activeButton == navConverterVideoButton));
         navConverterAudioButton.setStyle(getNavButtonStyle(activeButton == navConverterAudioButton));
+        navCompressorImage.setStyle(getNavButtonStyle(activeButton == navCompressorImage));
     }
 
     private String getNavButtonStyle(boolean active) {
@@ -67,4 +80,6 @@ public class ControllerView {
         }
         return "-fx-background-color: #323232; -fx-text-fill: white; -fx-background-radius: 8;";
     }
+
+
 }

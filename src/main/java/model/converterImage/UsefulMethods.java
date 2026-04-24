@@ -55,13 +55,13 @@ public class UsefulMethods {
         }
 
         String normalizedFormat = format.toLowerCase();
-        if ("jpg".equals(normalizedFormat)) {
-            return "jpeg";
-        }
-        if ("x-icon".equals(normalizedFormat) || "vnd.microsoft.icon".equals(normalizedFormat)) {
-            return "ico";
-        }
+        return switch (normalizedFormat) {
+            case "jpg" -> "jpeg";
+            case "svg+xml" -> "svg";
+            case "tif" -> "tiff";
+            case "x-icon", "vnd.microsoft.icon" -> "ico";
+            default -> normalizedFormat;
+        };
 
-        return normalizedFormat;
     }
 }

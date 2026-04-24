@@ -1,5 +1,5 @@
 package model.utility;
 
-public record Item(int id, String title) {
+public record Item(float id, String title) {
 
 }

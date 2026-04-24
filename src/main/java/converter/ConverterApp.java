@@ -22,7 +22,7 @@ public class ConverterApp extends Application {
         catch (NullPointerException e){ErrorLogger.warn("The icon for the application is missing or damaged.");}
 
         stage.setResizable(false);
-        stage.setTitle("Converter!");
+        stage.setTitle("Media multitool!");
         stage.setScene(scene);
         stage.show();
         ErrorLogger.info("Main window displayed.");

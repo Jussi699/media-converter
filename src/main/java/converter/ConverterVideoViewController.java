@@ -9,18 +9,17 @@ import javafx.scene.layout.StackPane;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 import javafx.util.Duration;
-import javafx.util.StringConverter;
 import model.converterVideo.ConverterVideoAudioFile;
 import model.select.SelectFile;
 import model.utility.DragDropped;
 import model.utility.Item;
 import viewHelp.Alerts;
+import viewHelp.ComboBoxes;
 
 import java.io.File;
 import java.nio.file.Paths;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
-import java.util.function.Function;
 
 import static viewHelp.Message.*;
 import static model.utility.Parsers.*;
@@ -73,10 +72,10 @@ public class ConverterVideoViewController {
         labelSelectVideoName.setText(DEFAULT_FILE_TEXT);
         labelSuccessConvert.setVisible(false);
 
-        setupComboBox(comboBoxChoiceBitRate, Item::title);
-        setupComboBox(comboBoxChoiceChannels, Item::title);
-        setupComboBox(comboBoxChoiceSamplingRate, Item::title);
-        setupComboBox(comboBoxChoiceFPS, Item::title);
+        ComboBoxes.setupComboBox(comboBoxChoiceBitRate, Item::title);
+        ComboBoxes.setupComboBox(comboBoxChoiceChannels, Item::title);
+        ComboBoxes.setupComboBox(comboBoxChoiceSamplingRate, Item::title);
+        ComboBoxes.setupComboBox(comboBoxChoiceFPS, Item::title);
 
         resetToDefaults();
 
@@ -196,22 +195,22 @@ public class ConverterVideoViewController {
 
     public void onChoiceBitRate() {
         selectedItem = comboBoxChoiceBitRate.getValue();
-        bitRate = (selectedItem != null) ? selectedItem.id() : -1;
+        bitRate = (selectedItem != null) ? (int) selectedItem.id() : -1;
     }
 
     public void onChoiceChannels() {
         selectedItem = comboBoxChoiceChannels.getValue();
-        channel = (selectedItem != null) ? selectedItem.id() : -1;
+        channel = (selectedItem != null) ? (int) selectedItem.id() : -1;
     }
 
     public void onChoiceSamplingRate() {
         selectedItem = comboBoxChoiceSamplingRate.getValue();
-        samplingRate = (selectedItem != null) ? selectedItem.id() : -1;
+        samplingRate = (selectedItem != null) ? (int) selectedItem.id() : -1;
     }
 
     public void onChoiceFPS() {
         selectedItem = comboBoxChoiceFPS.getValue();
-        fps = (selectedItem != null) ? selectedItem.id() : -1;
+        fps = (selectedItem != null) ? (int) selectedItem.id() : -1;
     }
 
     public void onChoiceResolution() {
@@ -324,15 +323,6 @@ public class ConverterVideoViewController {
         if (checkBoxGPU != null) checkBoxGPU.setSelected(false);
         resetToDefaults();
         hideSuccessMessage(labelSuccessConvert, hideSuccessMessageTimer);
-    }
-
-    private <T> void setupComboBox(ComboBox<T> comboBox, Function<T, String> textProvider) {
-        comboBox.setConverter(new StringConverter<>() {
-            @Override
-            public String toString(T item) { return item == null ? "" : textProvider.apply(item); }
-            @Override
-            public T fromString(String string) { return null; }
-        });
     }
 
     @FXML

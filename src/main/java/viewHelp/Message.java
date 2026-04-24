@@ -14,8 +14,12 @@ public class Message {
     }
 
     public static void showSuccessMessage(Label label, String format, PauseTransition timer) {
+        showSuccessText(label, "Successfully converted to " + format.toUpperCase(), timer);
+    }
+
+    public static void showSuccessText(Label label, String message, PauseTransition timer) {
         label.setStyle("-fx-text-fill: #32CD32;");
-        label.setText("Successfully converted to " + format.toUpperCase());
+        label.setText(message);
         label.setVisible(true);
         timer.playFromStart();
     }

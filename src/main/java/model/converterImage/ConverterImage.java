@@ -1,11 +1,14 @@
 package model.converterImage;
 
 import model.logger.ErrorLogger;
+import model.utility.Util;
 import net.ifok.image.image4j.codec.ico.ICOEncoder;
 import net.ifok.image.image4j.codec.ico.ICODecoder;
 
 import javax.imageio.ImageIO;
-import java.awt.*;
+import java.awt.Graphics2D;
+import java.awt.RenderingHints;
+import java.awt.Color;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -26,7 +29,7 @@ public class ConverterImage {
 
         BufferedImage bufImage = readImage(image);
         String outputFormat = normalizeOutputFormat(typeFile);
-        File outputImage = createOutputFile(image, pathForSave, typeFile);
+        File outputImage = Util.createOutputFile(image, pathForSave, typeFile);
 
         if ("svg".equalsIgnoreCase(outputFormat)) {
             saveAsSvg(bufImage, outputImage);
@@ -56,7 +59,7 @@ public class ConverterImage {
 
         BufferedImage bufImage = readImage(image);
         BufferedImage resized = resizeImage(bufImage, size, size);
-        File outputImage = createOutputFile(image, pathForSave, "ico");
+        File outputImage = Util.createOutputFile(image, pathForSave, "ico");
 
         ICOEncoder.write(resized, outputImage);
         ErrorLogger.info("ICO conversion successful. Saved to: " + outputImage.getAbsolutePath());
@@ -76,7 +79,13 @@ public class ConverterImage {
 
         String outputFormat = normalizeOutputFormat(typeFile);
         BufferedImage bestImage = prepareImageForFormat(UsefulMethods.getLargestImage(images), outputFormat);
-        File outputImage = createOutputFile(image, pathForSave, typeFile);
+        File outputImage = Util.createOutputFile(image, pathForSave, typeFile);
+
+        if ("svg".equalsIgnoreCase(outputFormat)) {
+            saveAsSvg(bestImage, outputImage);
+            ErrorLogger.info("Conversion from ICO to SVG successful. Saved to: " + outputImage.getAbsolutePath());
+            return outputImage;
+        }
 
         boolean written = ImageIO.write(bestImage, outputFormat, outputImage);
         if (!written) {
@@ -158,17 +167,6 @@ public class ConverterImage {
         }
 
         return bufferedImage;
-    }
-
-    private static File createOutputFile(File image, File pathForSave, String extension) {
-        String normalizedExtension = extension.toLowerCase(Locale.ROOT);
-        String fileName = getBaseName(image.getName())
-                + "_"
-                + UUID.randomUUID().toString().replace("-", "")
-                + "."
-                + normalizedExtension;
-
-        return new File(pathForSave, fileName);
     }
 
     private static String getBaseName(String fileName) {

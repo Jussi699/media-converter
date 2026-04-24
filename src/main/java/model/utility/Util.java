@@ -1,7 +1,8 @@
 package model.utility;
 
 import javafx.animation.PauseTransition;
-import javafx.scene.control.*;
+import javafx.scene.control.ProgressBar;
+import javafx.scene.control.Control;
 import javafx.stage.DirectoryChooser;
 import javafx.stage.Stage;
 import model.logger.ErrorLogger;
@@ -9,6 +10,10 @@ import ws.schild.jave.MultimediaObject;
 import ws.schild.jave.info.MultimediaInfo;
 import java.io.File;
 import java.util.List;
+import java.util.Locale;
+import java.util.UUID;
+
+import static org.apache.commons.io.FilenameUtils.getBaseName;
 
 public class Util {
     public static File setPathForSave(Stage stage, File currentDirectory) {
@@ -58,5 +63,15 @@ public class Util {
         return false;
     }
 
+    public static File createOutputFile(File image, File pathForSave, String extension) {
+        String normalizedExtension = extension.toLowerCase(Locale.ROOT);
+        String shortId = UUID.randomUUID().toString().split("-")[0];
+        String fileName = getBaseName(image.getName())
+                + "_"
+                + shortId
+                + "."
+                + normalizedExtension;
 
+        return new File(pathForSave, fileName);
+    }
 }

@@ -7,20 +7,21 @@
 <?import javafx.scene.control.Label?>
 <?import javafx.geometry.Insets?>
 
-<HBox prefHeight="600.0" prefWidth="800.0"
+<?import javafx.scene.shape.Line?>
+<HBox prefHeight="820.0" prefWidth="800.0"
       xmlns="http://javafx.com/javafx/25"
       xmlns:fx="http://javafx.com/fxml/1"
       fx:controller="converter.ControllerView">
 
     <VBox alignment="TOP_CENTER"
-          prefHeight="600.0"
+          prefHeight="820.0"
           prefWidth="170.0"
           spacing="16.0"
           style="-fx-background-color: #1f1f1f;">
         <Label alignment="CENTER"
                prefWidth="140.0"
                style="-fx-font-size: 22px; -fx-font-weight: bold;"
-               text="Converter"
+               text="Multitool"
                textFill="WHITE">
             <VBox.margin>
                 <Insets top="20.0"/>
@@ -33,29 +34,44 @@
                 prefWidth="140.0"
                 text="Home"/>
 
+        <Line startX="85.0"
+              endX="85.0" endY="5.0"
+              stroke="red" strokeWidth="2.0" />
+
         <Button fx:id="navConverterImageButton"
                 mnemonicParsing="false"
                 onAction="#showConverterImagePage"
                 prefWidth="140.0"
-                text="Image"/>
+                text="Converter Image"/>
 
         <Button fx:id="navConverterVideoButton"
                 mnemonicParsing="false"
                 onAction="#showConverterVideoPage"
                 prefWidth="140.0"
-                text="Video"/>
+                text="Converter Video"/>
 
         <Button fx:id="navConverterAudioButton"
                 mnemonicParsing="false"
                 onAction="#showConverterAudioPage"
                 prefWidth="140.0"
-                text="Audio"/>
+                text="Converter Audio"/>
+
+        <Line startX="85.0"
+              endX="85.0" endY="5.0"
+              stroke="red" strokeWidth="2.0" />
+
+        <Button fx:id="navCompressorImage"
+                mnemonicParsing="false"
+                onAction="#showCompressorImagePage"
+                prefWidth="140.0"
+                text="Compressor Image"/>
+
         <padding>
             <Insets left="14.0" right="14.0"/>
         </padding>
     </VBox>
 
-    <StackPane prefHeight="600.0"
+    <StackPane prefHeight="820.0"
                prefWidth="630.0"
                style="-fx-background-color: #2b2b2b;"
                HBox.hgrow="ALWAYS">
@@ -63,5 +79,6 @@
         <fx:include fx:id="converterImagePage" source="converter-image-view.fxml"/>
         <fx:include fx:id="converterVideoPage" source="converter-video-view.fxml"/>
         <fx:include fx:id="converterMP3Page" source="converter-audio-view.fxml"/>
+        <fx:include fx:id="compressorImagePage" source="compressor-image-view.fxml"/>
     </StackPane>
 </HBox>

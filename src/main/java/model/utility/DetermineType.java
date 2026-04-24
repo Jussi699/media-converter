@@ -36,25 +36,37 @@ public class DetermineType {
     }
 
     public static String determineFormat(File file) {
+        if (file == null) {
+            return null;
+        }
+
         try {
             String type = Files.probeContentType(file.toPath());
             if (type != null && type.contains("/")) {
                 String format = type.split("/")[1].toLowerCase();
+                if ("svg+xml".equals(format)) {
+                    return "svg";
+                }
                 if ("x-icon".equals(format) || "vnd.microsoft.icon".equals(format)) {
                     return "ico";
                 }
                 return format;
             }
-        }
-        catch (IOException e) {
+        } catch (IOException e) {
             ErrorLogger.warn("Unable to determine file type!");
-            ErrorLogger.log(113, ErrorLogger.Level.ERROR, "IOException", e);
-            return null;
+            ErrorLogger.log(113, ErrorLogger.Level.WARN, "IOException", e);
         }
-        return getExtensionByString(file.getName());
+
+        try {
+            return determineFormatImage(file).toLowerCase();
+        } catch (IOException e) {
+            ErrorLogger.warn("Unable to determine image format via ImageIO, fallback to extension.");
+            ErrorLogger.log(114, ErrorLogger.Level.WARN, "Image format detection fallback", e);
+            return getExtensionByString(file.getName());
+        }
     }
 
-    private static String getExtensionByString(String filename) {
+    public static String getExtensionByString(String filename) {
         if (filename == null || !filename.contains(".")) {
             return "";
         }

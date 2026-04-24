@@ -14,6 +14,7 @@
     -fx-font-weight: bold;
     -fx-text-fill: #32CD32;
     -fx-font-size: 10px;
+    -fx-alignment: center;
 }
 
 .button, .toggle-button {
@@ -115,7 +116,7 @@
     -fx-background-color: #32CD32;
 }
 
-#scrollPanePhoto {
+.scroll-pane-image {
     -fx-background: #3b3b3b;
     -fx-border-color: #3b3b3b;
     -fx-background-color: transparent;
@@ -173,3 +174,6 @@
     -fx-background-color: #5588cc;
 }
 
+#scrollPanePhotoOriginal {
+    -fx-min-height: 300px;
+}

@@ -80,6 +80,8 @@ public class ConverterImageViewController {
         comboBoxIcoSize.setDisable(false);
         comboBoxIcoSize.setValue(ICO_PLACEHOLDER);
 
+        scrollPanePhoto.getStyleClass().add("scroll-pane-image");
+
         imageViewPhoto.scaleXProperty().bind(imageScaleSlider.valueProperty());
         imageViewPhoto.scaleYProperty().bind(imageScaleSlider.valueProperty());
 
@@ -92,6 +94,7 @@ public class ConverterImageViewController {
         imageViewPhoto.imageProperty().addListener((_, _, _) -> updateImageSize());
 
         setupClearMessageTimer(labelSuccessConvert, hideSuccessMessageTimer);
+        labelSuccessConvert.setText("Conversion status");
 
         comboBoxIcoSize.setButtonCell(new ListCell<>() {
             @Override
@@ -316,7 +319,7 @@ public class ConverterImageViewController {
             }
 
         } catch (IllegalArgumentException e) {
-            ErrorLogger.log(1002, ErrorLogger.Level.WARN, "Invalid parameters for conversion", e);
+            ErrorLogger.log(119, ErrorLogger.Level.WARN, "Invalid parameters for conversion", e);
             showErrorMessage(labelSuccessConvert, "Error: Invalid parameters", hideSuccessMessageTimer);
             Alerts.alertDialog(Alert.AlertType.WARNING, "Warning", "Invalid Parameters", e.getMessage());
         } catch (IOException e) {
@@ -340,6 +343,7 @@ public class ConverterImageViewController {
         btnToPPM.setSelected("ppm".equals(format));
         btnToPGM.setSelected("pgm".equals(format));
         btnToPAM.setSelected("pam".equals(format));
+        btnToSVG.setSelected("svg".equals(format));
 
 
         comboBoxIcoSize.setValue(ICO_PLACEHOLDER);

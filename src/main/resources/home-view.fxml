@@ -15,7 +15,7 @@
       fx:controller="converter.HomeViewController">
 
         <Label style="-fx-font-size: 30px; -fx-font-weight: bold;"
-               text="Converter"
+               text="Media multitool"
                textFill="WHITE" />
 
         <Label prefWidth="520.0"
