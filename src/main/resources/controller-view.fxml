@@ -11,7 +11,7 @@
 <HBox prefHeight="820.0" prefWidth="800.0"
       xmlns="http://javafx.com/javafx/25"
       xmlns:fx="http://javafx.com/fxml/1"
-      fx:controller="converter.ControllerView">
+      fx:controller="media_multitool.ControllerView">
 
     <VBox alignment="TOP_CENTER"
           prefHeight="820.0"

@@ -5,22 +5,27 @@ import javafx.stage.Stage;
 
 import java.io.File;
 
-import static model.utility.Util.resolveInitialDirectory;
+import static model.utility.Util.*;
 
 public class SelectFile extends AbstractSelectFile {
+    private final FileChooser fileChooser = new FileChooser();
+
     @Override
     public File choiceFile(Stage stage, FileChooser.ExtensionFilter filter, String title) {
-        FileChooser fileChooser = new FileChooser();
         fileChooser.setTitle(title);
-        File initialDirectory = resolveInitialDirectory(new File(System.getProperty("user.home")));
+        
+        File initialDirectory = resolveInitialDirectory(getSavedInputPath());
         if (initialDirectory != null) {
             fileChooser.setInitialDirectory(initialDirectory);
         }
 
-        fileChooser.getExtensionFilters().addAll(
-                filter
-        );
+        fileChooser.getExtensionFilters().setAll(filter);
 
-        return fileChooser.showOpenDialog(stage);
+        File selectedFile = fileChooser.showOpenDialog(stage);
+        if (selectedFile != null) {
+            saveInputPath(selectedFile);
+        }
+        
+        return selectedFile;
     }
 }

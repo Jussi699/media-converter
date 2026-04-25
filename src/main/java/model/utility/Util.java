@@ -12,10 +12,51 @@ import java.io.File;
 import java.util.List;
 import java.util.Locale;
 import java.util.UUID;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.prefs.Preferences;
+import java.nio.file.Paths;
 
 import static org.apache.commons.io.FilenameUtils.getBaseName;
 
 public class Util {
+    private static final String KEY_OUTPUT_PATH = "last_output_path";
+    private static final String KEY_INPUT_PATH = "last_input_path";
+    private static final Preferences prefs = Preferences.userNodeForPackage(Util.class);
+
+    public static final ExecutorService IO_EXECUTOR = Executors.newFixedThreadPool(
+            Math.max(2, Runtime.getRuntime().availableProcessors()),
+            r -> {
+                Thread t = new Thread(r);
+                t.setDaemon(true);
+                t.setName("IO-Executor");
+                return t;
+            }
+    );
+
+    public static File getSavedPath() {
+        String defaultPath = Paths.get(System.getProperty("user.home"), "Desktop").toString();
+        String savedPath = prefs.get(KEY_OUTPUT_PATH, defaultPath);
+        File file = new File(savedPath);
+        return (file.exists() && file.isDirectory()) ? file : new File(defaultPath);
+    }
+
+    public static File getSavedInputPath() {
+        String defaultPath = System.getProperty("user.home");
+        String savedPath = prefs.get(KEY_INPUT_PATH, defaultPath);
+        File file = new File(savedPath);
+        return (file.exists() && file.isDirectory()) ? file : new File(defaultPath);
+    }
+
+    public static void saveInputPath(File file) {
+        if (file != null) {
+            File dir = file.isDirectory() ? file : file.getParentFile();
+            if (dir != null && dir.exists()) {
+                prefs.put(KEY_INPUT_PATH, dir.getAbsolutePath());
+            }
+        }
+    }
+
     public static File setPathForSave(Stage stage, File currentDirectory) {
         DirectoryChooser directoryChooser = new DirectoryChooser();
         directoryChooser.setTitle("Select directory for saving");
@@ -23,7 +64,11 @@ public class Util {
         if (initialDirectory != null) {
             directoryChooser.setInitialDirectory(initialDirectory);
         }
-        return directoryChooser.showDialog(stage);
+        File selected = directoryChooser.showDialog(stage);
+        if (selected != null) {
+            prefs.put(KEY_OUTPUT_PATH, selected.getAbsolutePath());
+        }
+        return selected;
     }
 
     public static File resolveInitialDirectory(File directory) {

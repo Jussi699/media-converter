@@ -1,4 +1,4 @@
-module converter {
+module media_multitool {
     requires javafx.controls;
     requires javafx.fxml;
 
@@ -9,10 +9,11 @@ module converter {
     requires jave.core;
     requires net.coobird.thumbnailator;
     requires org.apache.commons.io;
+    requires java.prefs;
 
-    opens converter to javafx.fxml;
+    opens media_multitool to javafx.fxml;
     exports model.converterImage;
-    exports converter;
+    exports media_multitool;
     exports model.utility;
     exports viewHelp;
 }

@@ -1,4 +1,4 @@
-package converter;
+package media_multitool;
 
 import javafx.animation.PauseTransition;
 import javafx.application.Platform;
@@ -10,6 +10,7 @@ import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 import javafx.util.Duration;
 import model.converterVideo.ConverterVideoAudioFile;
+import model.logger.ErrorLogger;
 import model.select.SelectFile;
 import model.utility.DragDropped;
 import model.utility.Item;
@@ -17,7 +18,6 @@ import viewHelp.Alerts;
 import viewHelp.ComboBoxes;
 
 import java.io.File;
-import java.nio.file.Paths;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
@@ -25,9 +25,8 @@ import static viewHelp.Message.*;
 import static model.utility.Parsers.*;
 import static model.utility.Util.*;
 
-public class ConverterVideoViewController {
-    private static final String DEFAULT_FILE_TEXT = "Selected file: none";
-    private static final int SUCCESS_MESSAGE_DURATION_SECONDS = 5;
+public class ConverterVideoController {
+    private final String DEFAULT_FILE_TEXT = "Selected file: none";
 
     private Item selectedItem;
     private String resolution;
@@ -39,7 +38,7 @@ public class ConverterVideoViewController {
     private File file;
     private String targetFormat;
     private final PauseTransition hideSuccessMessageTimer =
-            new PauseTransition(Duration.seconds(SUCCESS_MESSAGE_DURATION_SECONDS));
+            new PauseTransition(Duration.seconds(5));
 
     @FXML private Label labelSelectVideoName;
     @FXML private Label labelSuccessConvert;
@@ -61,13 +60,13 @@ public class ConverterVideoViewController {
     @FXML private ProgressBar progressBarConvert;
     @FXML private StackPane dropZone;
 
-    private static final List<String> SUPPORTED_VIDEO_FORMATS = List.of(
+    private final List<String> SUPPORTED_VIDEO_FORMATS = List.of(
             ".mp4", ".avi", ".mkv", ".mov", ".webm", ".flv", ".wmv", ".3gp"
     );
 
     @FXML
     public void initialize() {
-        outputPath = Paths.get(System.getProperty("user.home"), "Desktop").toFile();
+        outputPath = getSavedPath();
         setupClearMessageTimer(labelSuccessConvert, hideSuccessMessageTimer);
         labelSelectVideoName.setText(DEFAULT_FILE_TEXT);
         labelSuccessConvert.setVisible(false);
@@ -124,13 +123,13 @@ public class ConverterVideoViewController {
     private void resetToDefaults() {
         bitRate = 5000;
         channel = 2;
-        samplingRate = 44100;
+        samplingRate = 48000;
         fps = 30;
         resolution = "1920x1080";
 
         comboBoxChoiceBitRate.setValue(new Item(5000, "5000 kbps (1080p)"));
         comboBoxChoiceChannels.setValue(new Item(2, "2 Channels"));
-        comboBoxChoiceSamplingRate.setValue(new Item(44100, "44100 Hz"));
+        comboBoxChoiceSamplingRate.setValue(new Item(48000, "48000 Hz"));
         comboBoxChoiceFPS.setValue(new Item(30, "30 fps"));
         comboBoxChoiceResolution.setValue("1920x1080");
 
@@ -259,55 +258,72 @@ public class ConverterVideoViewController {
             return;
         }
 
-        ws.schild.jave.info.MultimediaInfo sourceInfo = getMetadata(file);
-
-        int finalVideoBitrate = (bitRate == -1) ? parseVideoBitrate(sourceInfo) : bitRate;
-        if (finalVideoBitrate <= 0) finalVideoBitrate = parseBitrate(sourceInfo);
-        if (finalVideoBitrate <= 0) finalVideoBitrate = 5000;
-
-        int finalAudioBitrate = parseAudioBitrate(sourceInfo);
-        if (finalAudioBitrate <= 0) finalAudioBitrate = 192;
-
-        int finalChannels = (channel == -1) ? parseChannels(sourceInfo) : channel;
-
-        int finalSamplingRate = (samplingRate == -1) ? parseSamplingRate(sourceInfo) : samplingRate;
-
-        int finalFps = (fps == -1) ? parseFps(sourceInfo) : fps;
-        String finalResolution = ("Match source".equalsIgnoreCase(resolution)) ? parseResolution(sourceInfo) : resolution;
-
-        if (finalChannels <= 0) finalChannels = 2;
-        if (finalSamplingRate <= 0) finalSamplingRate = 44100;
-        if (finalFps <= 0) finalFps = 30;
-
-        progressBarConvert.setProgress(0);
-        btnSubmitConvert.setDisable(true);
-
-        String videoCodec;
-        String audioCodec;
-        String ffmpegFormat = targetFormat;
-
-        boolean useGPU = checkBoxGPU != null && checkBoxGPU.isSelected();
-
-        switch (targetFormat) {
-            case "mp4", "m4v" -> { videoCodec = useGPU ? "h264_nvenc" : "libx264"; audioCodec = "aac"; ffmpegFormat = "mp4"; }
-            case "mkv", "matroska" -> { videoCodec = useGPU ? "h264_nvenc" : "libx264"; audioCodec = "aac"; ffmpegFormat = "mkv"; }
-            case "avi" -> { videoCodec = useGPU ? "h264_nvenc" : "mpeg4"; audioCodec = "libmp3lame"; ffmpegFormat = "avi"; }
-            case "webm" -> { videoCodec = "libvpx"; audioCodec = "libvorbis"; ffmpegFormat = "webm"; }
-            case "mov" -> { videoCodec = useGPU ? "h264_nvenc" : "libx264"; audioCodec = "aac"; ffmpegFormat = "mov"; }
-            default -> { videoCodec = useGPU ? "h264_nvenc" : "libx264"; audioCodec = "aac"; }
+        if(targetFormat.equals("webm")) {
+            if(samplingRate == 11025 || samplingRate == 22050 || samplingRate == 32000 || samplingRate == 44100){
+                Alerts.alertDialog(Alert.AlertType.WARNING, "WARN", "Sampling rate not support!",
+                        "This sampling rate: (" + samplingRate + ") not supported for WEBM video format!");
+                return;
+            }
         }
 
-        ConverterVideoAudioFile.convert(file, outputPath, finalVideoBitrate, finalAudioBitrate, finalChannels, finalSamplingRate, finalFps,
-                videoCodec, audioCodec, ffmpegFormat, finalResolution, "video", progress ->
-                        Platform.runLater(() -> progressBarConvert.setProgress(progress))).thenAccept(success -> Platform.runLater(() -> {
-            btnSubmitConvert.setDisable(false);
-            if (success) {
-                showSuccessMessage(labelSuccessConvert, targetFormat, hideSuccessMessageTimer);
-                showProgressBar(progressBarConvert, hideSuccessMessageTimer);
-            } else {
-                progressBarConvert.setProgress(0);
-            }
-        }));
+        btnSubmitConvert.setDisable(true);
+        progressBarConvert.setProgress(0);
+
+
+        CompletableFuture.supplyAsync(() -> getMetadata(file), IO_EXECUTOR)
+            .thenCompose(sourceInfo -> {
+                int finalVideoBitrate = (bitRate == -1) ? parseVideoBitrate(sourceInfo) : bitRate;
+                if (finalVideoBitrate <= 0) finalVideoBitrate = parseBitrate(sourceInfo);
+                if (finalVideoBitrate <= 0) finalVideoBitrate = 5000;
+
+                int finalAudioBitrate = parseAudioBitrate(sourceInfo);
+                if (finalAudioBitrate <= 0) finalAudioBitrate = 192;
+
+                int finalChannels = (channel == -1) ? parseChannels(sourceInfo) : channel;
+                int finalSamplingRate = (samplingRate == -1) ? parseSamplingRate(sourceInfo) : samplingRate;
+                int finalFps = (fps == -1) ? parseFps(sourceInfo) : fps;
+                String finalResolution = ("Match source".equalsIgnoreCase(resolution)) ? parseResolution(sourceInfo) : resolution;
+
+                if (finalChannels <= 0) finalChannels = 2;
+                if (finalSamplingRate <= 0) finalSamplingRate = 48000;
+                if (finalFps <= 0) finalFps = 30;
+
+                String videoCodec;
+                String audioCodec;
+                String ffmpegFormat = targetFormat;
+
+                boolean useGPU = checkBoxGPU != null && checkBoxGPU.isSelected();
+
+                switch (targetFormat) {
+                    case "mp4", "m4v" -> { videoCodec = useGPU ? "h264_nvenc" : "libx264"; audioCodec = "aac"; ffmpegFormat = "mp4"; }
+                    case "mkv", "matroska" -> { videoCodec = useGPU ? "h264_nvenc" : "libx264"; audioCodec = "aac"; ffmpegFormat = "mkv"; }
+                    case "avi" -> { videoCodec = useGPU ? "h264_nvenc" : "mpeg4"; audioCodec = "libmp3lame"; ffmpegFormat = "avi"; }
+                    case "webm" -> { videoCodec = "libvpx"; audioCodec = "libvorbis"; ffmpegFormat = "webm"; }
+                    case "mov" -> { videoCodec = useGPU ? "h264_nvenc" : "libx264"; audioCodec = "aac"; ffmpegFormat = "mov"; }
+                    default -> { videoCodec = useGPU ? "h264_nvenc" : "libx264"; audioCodec = "aac"; }
+                }
+
+                return ConverterVideoAudioFile.convert(file, outputPath, finalVideoBitrate, finalAudioBitrate, finalChannels, finalSamplingRate, finalFps,
+                        videoCodec, audioCodec, ffmpegFormat, finalResolution, "video", progress ->
+                                Platform.runLater(() -> progressBarConvert.setProgress(progress)));
+            })
+            .thenAccept(success -> Platform.runLater(() -> {
+                btnSubmitConvert.setDisable(false);
+                if (success) {
+                    showSuccessMessage(labelSuccessConvert, targetFormat, hideSuccessMessageTimer);
+                    showProgressBar(progressBarConvert, hideSuccessMessageTimer);
+                } else {
+                    progressBarConvert.setProgress(0);
+                }
+            }))
+            .exceptionally(e -> {
+                Platform.runLater(() -> {
+                    btnSubmitConvert.setDisable(false);
+                    progressBarConvert.setProgress(0);
+                    ErrorLogger.error("Async conversion error: " + e.getMessage());
+                });
+                return null;
+            });
     }
 
     @FXML

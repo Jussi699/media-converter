@@ -5,13 +5,14 @@ import model.utility.DetermineType;
 import model.utility.Util;
 import net.coobird.thumbnailator.Thumbnails;
 import org.w3c.dom.Document;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
 
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.util.Locale;
-import java.util.zip.GZIPOutputStream;
 import javax.xml.XMLConstants;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -72,15 +73,13 @@ public class Compressor {
         }
     }
 
-    public static CompressionResult compressToSvgz(File file, File pathToSave) throws IOException {
-        File outputFile = Util.createOutputFile(file, pathToSave, "svgz");
+    public static CompressionResult removeSvgMetadata(File file, File pathToSave) throws IOException {
+        File outputFile = Util.createOutputFile(file, pathToSave, "svg");
         long originalSize = file.length();
 
-        try (FileOutputStream fos = new FileOutputStream(outputFile);
-             GZIPOutputStream gzos = new GZIPOutputStream(fos)) {
+        try {
             String normalizedSvg = normalizeSvg(file);
-            gzos.write(normalizedSvg.getBytes(StandardCharsets.UTF_8));
-            gzos.finish();
+            Files.writeString(outputFile.toPath(), normalizedSvg);
 
             long compressedSize = outputFile.length();
             if (compressedSize <= 0) {
@@ -88,14 +87,14 @@ public class Compressor {
             }
 
             if (compressedSize >= originalSize && !outputFile.delete()) {
-                ErrorLogger.warn("SVGZ file is larger than source and could not be deleted: "
+                ErrorLogger.warn("SVG file without metadata is larger than source and could not be deleted: "
                         + outputFile.getAbsolutePath());
             }
 
             boolean sizeReduced = compressedSize < originalSize;
-            return new CompressionResult(outputFile, "svgz", originalSize, compressedSize, sizeReduced);
+            return new CompressionResult(outputFile, "svg", originalSize, compressedSize, sizeReduced);
         } catch (IOException e) {
-            ErrorLogger.log(117, ErrorLogger.Level.ERROR, "SVG GZIP compression error", e);
+            ErrorLogger.log(117, ErrorLogger.Level.ERROR, "SVG metadata removal error", e);
             throw e;
         }
     }
@@ -127,6 +126,7 @@ public class Compressor {
 
             DocumentBuilder builder = factory.newDocumentBuilder();
             Document document = builder.parse(file);
+            removeMetadataNodes(document);
 
             TransformerFactory transformerFactory = TransformerFactory.newInstance();
             transformerFactory.setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, true);
@@ -142,6 +142,17 @@ public class Compressor {
         } catch (Exception e) {
             ErrorLogger.log(119, ErrorLogger.Level.ERROR, "Failed to normalize SVG before compression", e);
             throw new IOException("Failed to process SVG", e);
+        }
+    }
+
+    private static void removeMetadataNodes(Document document) {
+        NodeList metadataNodes = document.getElementsByTagNameNS("*", "metadata");
+        for (int i = metadataNodes.getLength() - 1; i >= 0; i--) {
+            Node metadataNode = metadataNodes.item(i);
+            Node parent = metadataNode.getParentNode();
+            if (parent != null) {
+                parent.removeChild(metadataNode);
+            }
         }
     }
 }

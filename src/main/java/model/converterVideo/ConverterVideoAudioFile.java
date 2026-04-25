@@ -18,6 +18,8 @@ import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 
+import static model.utility.Util.IO_EXECUTOR;
+
 public class ConverterVideoAudioFile {
     private static final Encoder encoder = new Encoder();
     public static File nameFileAfter;
@@ -134,7 +136,7 @@ public class ConverterVideoAudioFile {
                 currentTarget = null;
                 return false;
             }
-        });
+        }, IO_EXECUTOR);
     }
 
     public static CompletableFuture<Boolean> convert(File file,
@@ -150,7 +152,7 @@ public static void cancelConversion() {
     File fileToDelete = currentTarget;
     if (fileToDelete == null) return;
 
-    new Thread(() -> {
+    IO_EXECUTOR.submit(() -> {
         ErrorLogger.info("Attempting to delete partial file: " + fileToDelete.getName());
         int attempts = 0;
         boolean deleted = false;
@@ -182,7 +184,7 @@ public static void cancelConversion() {
         if (fileToDelete.equals(currentTarget)) {
             currentTarget = null;
         }
-    }).start();
+    });
 }
 
     private static boolean checkingFileStatic(File file) {

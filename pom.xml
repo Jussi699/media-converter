@@ -5,9 +5,9 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>Jussi669</groupId>
-    <artifactId>Converter</artifactId>
+    <artifactId>Media-Multitool</artifactId>
     <version>1.0-SNAPSHOT</version>
-    <name>Converter</name>
+    <name>Media-Multitool</name>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -80,6 +80,11 @@
         <dependency>
             <groupId>ch.qos.logback</groupId>
             <artifactId>logback-classic</artifactId>
+            <version>1.5.32</version>
+        </dependency>
+        <dependency>
+            <groupId>ch.qos.logback</groupId>
+            <artifactId>logback-core</artifactId>
             <version>1.5.32</version>
         </dependency>
         <dependency>
@@ -162,7 +167,7 @@
                     <execution>
                         <id>default-cli</id>
                         <configuration>
-                            <mainClass>converter/converter.Launcher</mainClass>
+                            <mainClass>media_multitool/media_multitool.Launcher</mainClass>
                             <launcher>app</launcher>
                             <jlinkZipName>app</jlinkZipName>
                             <jlinkImageName>app</jlinkImageName>

@@ -1,4 +1,4 @@
-package converter;
+package media_multitool;
 
 import javafx.application.Platform;
 import javafx.embed.swing.SwingFXUtils;
@@ -21,7 +21,6 @@ import model.select.SelectFile;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.Paths;
 
 import static model.converterImage.UsefulMethods.*;
 
@@ -29,16 +28,15 @@ import viewHelp.Alerts;
 import static viewHelp.Message.*;
 import static model.utility.Util.*;
 
-public class ConverterImageViewController {
-    private static final int SUCCESS_MESSAGE_DURATION_SECONDS = 5;
-    private static final String ICO_PLACEHOLDER = "to ICO";
+public class ConverterImageController {
+    private final String ICO_PLACEHOLDER = "to ICO";
 
     private File image;
     private File outputPath;
     private String typeImage;
     private int sizeIcoImage;
     private final PauseTransition hideSuccessMessageTimer =
-            new PauseTransition(Duration.seconds(SUCCESS_MESSAGE_DURATION_SECONDS));
+            new PauseTransition(Duration.seconds(5));
 
     @FXML private Button btnSelectPhotoFile;
     @FXML private Button btnChoiceDirForSaveImage;
@@ -63,7 +61,7 @@ public class ConverterImageViewController {
     @FXML
     public void initialize() {
         Tooltip tooltipChoiceDir = new Tooltip("Standard directory, Desktop");
-        outputPath = Paths.get(System.getProperty("user.home"), "Desktop").toFile();
+        outputPath = getSavedPath();
         btnChoiceDirForSaveImage.setTooltip(tooltipChoiceDir);
         imageContainer.setManaged(true);
         imageContainer.setAlignment(Pos.CENTER);

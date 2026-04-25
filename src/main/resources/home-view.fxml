@@ -12,7 +12,7 @@
       style="-fx-background-color: #343434;"
       xmlns="http://javafx.com/javafx/25"
       xmlns:fx="http://javafx.com/fxml/1"
-      fx:controller="converter.HomeViewController">
+      fx:controller="media_multitool.HomeViewController">
 
         <Label style="-fx-font-size: 30px; -fx-font-weight: bold;"
                text="Media multitool"
@@ -20,7 +20,7 @@
 
         <Label prefWidth="520.0"
                style="-fx-font-size: 16px;"
-               text="Select the type of converter you want to use:"
+               text="Select the type of media_multitool you want to use:"
                textFill="#d6d6d6"
                wrapText="true" />
 

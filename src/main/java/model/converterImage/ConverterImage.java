@@ -121,7 +121,18 @@ public class ConverterImage {
     }
 
     public static BufferedImage prepareImageForFormat(BufferedImage source, String format) {
-        if (!"jpg".equals(format) && !"jpeg".equals(format) && !"bmp".equals(format)) {
+        if ("pgm".equalsIgnoreCase(format)) {
+            BufferedImage grayImage = new BufferedImage(source.getWidth(), source.getHeight(), BufferedImage.TYPE_BYTE_GRAY);
+            Graphics2D graphics = grayImage.createGraphics();
+            graphics.setColor(Color.WHITE);
+            graphics.fillRect(0, 0, source.getWidth(), source.getHeight());
+            graphics.drawImage(source, 0, 0, null);
+            graphics.dispose();
+            return grayImage;
+        }
+
+        if (!"jpg".equalsIgnoreCase(format) && !"jpeg".equalsIgnoreCase(format) && 
+            !"bmp".equalsIgnoreCase(format) && !"ppm".equalsIgnoreCase(format) && !"pnm".equalsIgnoreCase(format)) {
             return source;
         }
 

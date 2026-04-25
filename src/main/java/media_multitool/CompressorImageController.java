@@ -1,4 +1,4 @@
-package converter;
+package media_multitool;
 
 import javafx.animation.PauseTransition;
 import javafx.embed.swing.SwingFXUtils;
@@ -25,16 +25,15 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Paths;
 import java.util.Locale;
+import java.util.concurrent.CompletableFuture;
+import javafx.application.Platform;
 
-import static model.utility.Util.getStage;
-import static model.utility.Util.setPathForSave;
+import static model.utility.Util.*;
 import static viewHelp.Message.*;
 import static model.converterImage.UsefulMethods.readPreviewImage;
 
-public class CompressorImageViewController {
-    private static final int SUCCESS_MESSAGE_DURATION_SECONDS = 5;
-    private static final String DEFAULT_FILE_TEXT = "Selected file: none";
-    private static final double PREVIEW_PADDING = 5.0;
+public class CompressorImageController {
+    private final String DEFAULT_FILE_TEXT = "Selected file: none";
 
     private float scale;
     private float quality;
@@ -44,7 +43,7 @@ public class CompressorImageViewController {
     private String typeImage;
 
     private final PauseTransition hideSuccessMessageTimer =
-            new PauseTransition(Duration.seconds(SUCCESS_MESSAGE_DURATION_SECONDS));
+            new PauseTransition(Duration.seconds(5));
 
     @FXML private ComboBox<Item> comboBoxOutputQuality;
     @FXML private ComboBox<Item> comboBoxScaleImage;
@@ -134,15 +133,10 @@ public class CompressorImageViewController {
             return;
         }
 
-        if (typeImage == null) {
-            Alerts.alertDialog(Alert.AlertType.WARNING, "Warning", "File missing!", "Select photo format (PNG/JPEG/ICO/WEBP).");
-            return;
-        }
-
         UsefulMethods usefulMethods = new UsefulMethods();
         String targetFormat = usefulMethods.normalizeFormat(typeImage);
         boolean isSvg = "svg".equalsIgnoreCase(targetFormat);
-        boolean qualityRequired = isQualityRequired(targetFormat);
+        boolean qualityRequired = "jpeg".equalsIgnoreCase(targetFormat) || "jpg".equalsIgnoreCase(targetFormat) || "webp".equalsIgnoreCase(targetFormat);
 
         if (!isSvg && scale == -1) {
             Alerts.alertDialog(Alert.AlertType.WARNING, "Setting missing", "Missing settings", "First select Scale!");
@@ -154,15 +148,23 @@ public class CompressorImageViewController {
             return;
         }
 
-        try {
-            hideSuccessMessage(labelSuccessConvert, hideSuccessMessageTimer);
-            CompressionResult compressionResult;
+        btnSelectPhotoFile.setDisable(true);
+        btnChoiceDirForSaveImage.setDisable(true);
+        hideSuccessMessage(labelSuccessConvert, hideSuccessMessageTimer);
 
-            if ("svg".equals(targetFormat)) {
-                compressionResult = Compressor.compressToSvgz(image, outputPath);
-            } else {
-                compressionResult = Compressor.compressorStandardImage(image, outputPath, scale, quality);
+        CompletableFuture.supplyAsync(() -> {
+            try {
+                if ("svg".equals(targetFormat)) {
+                    return Compressor.removeSvgMetadata(image, outputPath);
+                } else {
+                    return Compressor.compressorStandardImage(image, outputPath, scale, quality);
+                }
+            } catch (IOException e) {
+                throw new RuntimeException(e);
             }
+        }, IO_EXECUTOR).thenAccept(compressionResult -> Platform.runLater(() -> {
+            btnSelectPhotoFile.setDisable(false);
+            btnChoiceDirForSaveImage.setDisable(false);
 
             if (compressionResult == null) {
                 showErrorMessage(labelSuccessConvert, "So close, yet no success", hideSuccessMessageTimer);
@@ -195,20 +197,27 @@ public class CompressorImageViewController {
                 Alerts.alertDialog(Alert.AlertType.WARNING, "Warning", "Missing File",
                         "Compression finished, but saved file was not found.");
             }
-
-        } catch (IllegalArgumentException e) {
-            ErrorLogger.log(118, ErrorLogger.Level.WARN, "Invalid parameters for compression", e);
-            showErrorMessage(labelSuccessConvert, "Error: Invalid parameters", hideSuccessMessageTimer);
-            Alerts.alertDialog(Alert.AlertType.WARNING, "Warning", "Invalid Parameters", e.getMessage());
-        } catch (IOException e) {
-            ErrorLogger.log(105, ErrorLogger.Level.ERROR, "IO Error during compression", e);
-            showErrorMessage(labelSuccessConvert, "Error: " + e.getMessage(), hideSuccessMessageTimer);
-            Alerts.alertDialog(Alert.AlertType.ERROR, "Error", "Compression Failed", e.getMessage());
-        } catch (Exception e) {
-            ErrorLogger.log(1001, ErrorLogger.Level.ERROR, "Unexpected error during conversion", e);
-            showErrorMessage(labelSuccessConvert, "System Error: " + e.getMessage(), hideSuccessMessageTimer);
-            Alerts.alertDialog(Alert.AlertType.ERROR, "Error", "System Error", "Something went wrong: " + e.getMessage());
-        }
+        })).exceptionally(e -> {
+            Platform.runLater(() -> {
+                btnSelectPhotoFile.setDisable(false);
+                btnChoiceDirForSaveImage.setDisable(false);
+                Throwable cause = e.getCause();
+                if (cause instanceof IllegalArgumentException) {
+                    ErrorLogger.log(118, ErrorLogger.Level.WARN, "Invalid parameters for compression", cause);
+                    showErrorMessage(labelSuccessConvert, "Error: Invalid parameters", hideSuccessMessageTimer);
+                    Alerts.alertDialog(Alert.AlertType.WARNING, "Warning", "Invalid Parameters", cause.getMessage());
+                } else if (cause instanceof IOException || (cause != null && cause.getCause() instanceof IOException)) {
+                    ErrorLogger.log(105, ErrorLogger.Level.ERROR, "IO Error during compression", cause);
+                    showErrorMessage(labelSuccessConvert, "Error: " + cause.getMessage(), hideSuccessMessageTimer);
+                    Alerts.alertDialog(Alert.AlertType.ERROR, "Error", "Compression Failed", cause.getMessage());
+                } else {
+                    ErrorLogger.log(1001, ErrorLogger.Level.ERROR, "Unexpected error during conversion", cause);
+                    showErrorMessage(labelSuccessConvert, "System Error: " + (cause != null ? cause.getMessage() : e.getMessage()), hideSuccessMessageTimer);
+                    Alerts.alertDialog(Alert.AlertType.ERROR, "Error", "System Error", "Something went wrong: " + (cause != null ? cause.getMessage() : e.getMessage()));
+                }
+            });
+            return null;
+        });
     }
 
     public void isPressedReset() {
@@ -258,10 +267,6 @@ public class CompressorImageViewController {
         return String.format(Locale.US, "%.2f MB", bytes / (1024.0 * 1024.0));
     }
 
-    private boolean isQualityRequired(String format) {
-        return "jpeg".equalsIgnoreCase(format) || "jpg".equalsIgnoreCase(format) || "webp".equalsIgnoreCase(format);
-    }
-
     private void configurePreview(ScrollPane scrollPane, StackPane container, ImageView imageView) {
         scrollPane.setPannable(true);
         scrollPane.setFitToHeight(true);
@@ -303,6 +308,7 @@ public class CompressorImageViewController {
             return;
         }
 
+        double PREVIEW_PADDING = 5.0;
         double fitWidth = Math.max(100, viewportWidth - PREVIEW_PADDING);
         double fitHeight = Math.max(100, viewportHeight - PREVIEW_PADDING);
 

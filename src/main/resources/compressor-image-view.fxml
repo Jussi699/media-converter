@@ -13,7 +13,7 @@
       style="-fx-background-color: #4b4b4b;"
       xmlns="http://javafx.com/javafx/25"
       xmlns:fx="http://javafx.com/fxml/1"
-      fx:controller="converter.CompressorImageViewController">
+      fx:controller="media_multitool.CompressorImageController">
 
     <Label alignment="CENTER"
            prefWidth="220.0"

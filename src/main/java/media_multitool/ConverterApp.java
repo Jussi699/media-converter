@@ -1,4 +1,4 @@
-package converter;
+package media_multitool;
 
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
@@ -13,7 +13,6 @@ import java.util.Objects;
 public class ConverterApp extends Application {
     @Override
     public void start(Stage stage) throws IOException {
-        ErrorLogger.info("Application starting...");
         FXMLLoader fxmlLoader = new FXMLLoader(ConverterApp.class.getResource("/controller-view.fxml"));
         Scene scene = new Scene(fxmlLoader.load(), 800, 600);
         scene.getStylesheets().add(String.valueOf(getClass().getResource("/style.css")));
@@ -25,6 +24,5 @@ public class ConverterApp extends Application {
         stage.setTitle("Media multitool!");
         stage.setScene(scene);
         stage.show();
-        ErrorLogger.info("Main window displayed.");
     }
 }

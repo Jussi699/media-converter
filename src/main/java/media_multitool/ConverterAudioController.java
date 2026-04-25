@@ -1,4 +1,4 @@
-package converter;
+package media_multitool;
 
 import javafx.animation.PauseTransition;
 import javafx.application.Platform;
@@ -21,16 +21,13 @@ import viewHelp.Alerts;
 import java.io.File;
 import java.nio.file.Paths;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 
 import static viewHelp.Message.*;
 import static model.utility.Parsers.*;
 import static model.utility.Util.*;
 
-public class ConverterAudioViewController {
-    private static final int SUCCESS_MESSAGE_DURATION_SECONDS = 5;
-
-    private final File DEFAULT_PATH = Paths.get(System.getProperty("user.home"), "Desktop").toFile();
-
+public class ConverterAudioController {
     private String targetFormat;
     private int bitRate;
     private int channel;
@@ -38,7 +35,7 @@ public class ConverterAudioViewController {
     private File outputPath;
     private File file;
     private final PauseTransition hideSuccessMessageTimer =
-            new PauseTransition(Duration.seconds(SUCCESS_MESSAGE_DURATION_SECONDS));
+            new PauseTransition(Duration.seconds(5));
 
     @FXML private StackPane dropZone;
     @FXML private ProgressBar progressBarConvert;
@@ -59,7 +56,7 @@ public class ConverterAudioViewController {
     @FXML private ToggleButton btnToWAV;
     @FXML private ToggleButton btnToAIFF;
 
-    private static final List<String> SUPPORTED_AUDIO_VIDEO_FORMATS = List.of(
+    private final List<String> SUPPORTED_AUDIO_VIDEO_FORMATS = List.of(
             ".mp3", ".wav", ".ogg", ".flac", ".m4a", ".aac", ".wma",
             ".mp4", ".avi", ".mkv", ".mov", ".flv", ".wmv", ".webm", ".3gp"
     );
@@ -69,7 +66,7 @@ public class ConverterAudioViewController {
         btnChoiceDirForSaveMP3.setTooltip(new Tooltip("Default path \"Desktop\""));
         btnSubmitConvert.setTooltip(new Tooltip("Converting a large file may take longer!"));
 
-        outputPath = DEFAULT_PATH;
+        outputPath = getSavedPath();
         setupClearMessageTimer(labelSuccessConvert, progressBarConvert, hideSuccessMessageTimer);
 
         labelSuccessConvert.setVisible(false);
@@ -100,6 +97,16 @@ public class ConverterAudioViewController {
         channel = 2;
         samplingRate = 48000;
         progressBarConvert.setProgress(0);
+
+        btnToAAC.setSelected(false);
+        btnToAIFF.setSelected(false);
+        btnToALAC.setSelected(false);
+        btnToFLAC.setSelected(false);
+        btnToMP3.setSelected(false);
+        btnToOggVorbis.setSelected(false);
+        btnToOPUS.setSelected(false);
+        btnToWAV.setSelected(false);
+
         file = null;
         if (dropZone != null) dropZone.getStyleClass().remove("drop-zone-filled");
         if (textDragZone != null) textDragZone.setText("Drag files here");
@@ -155,22 +162,66 @@ public class ConverterAudioViewController {
             return;
         }
 
-        int originalChannels = parseChannels(getMetadata(file));
-        if (originalChannels == 1 && channel == 2) {
-            boolean proceed = Alerts.confirmationDialog(
-                    "Mono to Stereo Confirmation",
-                    "The source file is mono (1 channel).",
-                    "Do you want to convert it to stereo (2 channels) anyway?"
-            );
-            if (!proceed) return;
+        if(targetFormat == null){
+            Alerts.alertDialog(Alert.AlertType.WARNING, "WARN", "Format missing!", "Select audio format!");
+            return;
         }
 
-        progressBarConvert.setProgress(0);
         btnSubmitConvert.setDisable(true);
+        progressBarConvert.setProgress(0);
 
+        CompletableFuture.supplyAsync(() -> getMetadata(file), IO_EXECUTOR)
+            .thenCompose(sourceInfo -> {
+                int originalChannels = parseChannels(sourceInfo);
+                if (originalChannels == 1 && channel == 2) {
+                    CompletableFuture<Boolean> proceedFuture = new CompletableFuture<>();
+                    Platform.runLater(() -> {
+                        boolean proceed = Alerts.confirmationDialog(
+                                "Mono to Stereo Confirmation",
+                                "The source file is mono (1 channel).",
+                                "Do you want to convert it to stereo (2 channels) anyway?"
+                        );
+                        proceedFuture.complete(proceed);
+                    });
+                    return proceedFuture.thenCompose(proceed -> {
+                        if (!proceed) return CompletableFuture.completedFuture(null);
+                        return startAudioConversion();
+                    });
+                }
+                return startAudioConversion();
+            })
+            .thenAccept(success -> {
+                if (success == null) {
+                     Platform.runLater(() -> btnSubmitConvert.setDisable(false));
+                     return;
+                }
+                Platform.runLater(() -> {
+                    btnSubmitConvert.setDisable(false);
+                    if (success) {
+                        showSuccessMessage(labelSuccessConvert, targetFormat, hideSuccessMessageTimer);
+                        showProgressBar(progressBarConvert, hideSuccessMessageTimer);
+                    } else {
+                        if (progressBarConvert.getProgress() > 0 && progressBarConvert.getProgress() < 1.0) {
+                            progressBarConvert.setProgress(0);
+                        } else {
+                            showErrorMessage(labelSuccessConvert, progressBarConvert, "So close, yet no success", hideSuccessMessageTimer);
+                        }
+                    }
+                });
+            })
+            .exceptionally(e -> {
+                Platform.runLater(() -> {
+                    btnSubmitConvert.setDisable(false);
+                    progressBarConvert.setProgress(0);
+                    ErrorLogger.error("Async audio conversion error: " + e.getMessage());
+                });
+                return null;
+            });
+    }
+
+    private CompletableFuture<Boolean> startAudioConversion() {
         String audioCodec;
         String ffmpegFormat;
-
 
         switch (targetFormat.toLowerCase()) {
             case "aac" -> {audioCodec = "aac";ffmpegFormat = "adts";}
@@ -183,27 +234,15 @@ public class ConverterAudioViewController {
             default -> {audioCodec = "libmp3lame";ffmpegFormat = "mp3";}
         }
 
-        ConverterVideoAudioFile.convert(file, outputPath, bitRate, channel, samplingRate,
+        return ConverterVideoAudioFile.convert(file, outputPath, bitRate, channel, samplingRate,
                 audioCodec, ffmpegFormat, progress ->
-                        Platform.runLater(() -> progressBarConvert.setProgress(progress))).thenAccept(success -> Platform.runLater(() -> {
-            btnSubmitConvert.setDisable(false);
-            if (success) {
-                showSuccessMessage(labelSuccessConvert, targetFormat, hideSuccessMessageTimer);
-                showProgressBar(progressBarConvert, hideSuccessMessageTimer);
-            } else {
-                if (progressBarConvert.getProgress() > 0 && progressBarConvert.getProgress() < 1.0) {
-                    progressBarConvert.setProgress(0);
-                } else {
-                    showErrorMessage(labelSuccessConvert, progressBarConvert,"So close, yet no success", hideSuccessMessageTimer);
-                }
-            }
-        }));
+                        Platform.runLater(() -> progressBarConvert.setProgress(progress)));
     }
 
     @FXML
     public void onResetPressed() {
         resetToDefaults();
-        outputPath = DEFAULT_PATH;
+        outputPath = getSavedPath();
         hideSuccessMessage(labelSuccessConvert, hideSuccessMessageTimer);
     }
 
@@ -255,19 +294,19 @@ public class ConverterAudioViewController {
 
     public void onChoiceBitRate() {
         bitRate = parseComboBoxStringToInt(comboBoxChoiceBitRate);
-        ErrorLogger.info("Select bitRate: " + bitRate);
+        ErrorLogger.info("User select bitRate: " + bitRate);
 
     }
 
     public void onChoiceChannels() {
         channel = parseComboBoxStringToInt(comboBoxChoiceChannels);
-        ErrorLogger.info("Select channels: " + channel);
+        ErrorLogger.info("User select channels: " + channel);
 
     }
 
     public void onChoiceSamplingRate() {
         samplingRate = parseComboBoxStringToInt(comboBoxChoiceSamplingRate);
-        ErrorLogger.info("Select sampling rate: " + samplingRate);
+        ErrorLogger.info("User select sampling rate: " + samplingRate);
     }
 
     private void setupComboBox(ComboBox<String> cb) {

@@ -16,7 +16,7 @@
       prefWidth="630.0"
       spacing="15.0"
       style="-fx-background-color: #4b4b4b;" xmlns="http://javafx.com/javafx/17.0.12"
-      xmlns:fx="http://javafx.com/fxml/1" fx:controller="converter.ConverterVideoViewController">
+      xmlns:fx="http://javafx.com/fxml/1" fx:controller="media_multitool.ConverterVideoController">
 
 
     <Label alignment="CENTER"
